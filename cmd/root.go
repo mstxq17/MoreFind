@@ -97,6 +97,45 @@ var (
 					}
 				}
 			}
+			if output != "" {
+				_output, err := os.OpenFile(output, os.O_RDWR, 0777)
+				if err != nil {
+					log.Fatal(err)
+				}
+				defer func(_output *os.File) {
+					err := _output.Close()
+					if err != nil {
+						log.Fatal(err)
+					}
+				}(_output)
+				writer := bufio.NewWriter(_output)
+				for _, line := range urlList {
+					_, err := writer.WriteString(line + "\n")
+					if err != nil {
+						log.Fatal(err)
+						return
+					}
+				}
+				for _, line := range domainList {
+					_, err := writer.WriteString(line + "\n")
+					if err != nil {
+						log.Fatal(err)
+						return
+					}
+				}
+				for _, line := range ipList {
+					_, err := writer.WriteString(line + "\n")
+					if err != nil {
+						log.Fatal(err)
+						return
+					}
+				}
+				err = writer.Flush()
+				if err != nil {
+					log.Fatal(err)
+					return
+				}
+			}
 			if err := sc.Err(); err != nil {
 				panic(err)
 			}
