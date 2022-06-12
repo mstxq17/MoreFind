@@ -1,0 +1,39 @@
+# 工作流名称
+name: Go Release
+
+# 触发条件
+on:
+  push:
+    # 创建 tag 时
+    tags:
+    - v*
+    # 推送到 master 分支时
+    branchs:
+    - master
+
+jobs:
+  release:
+    # 运行环境
+    runs-on: ubuntu-latest
+    steps:
+    # 切换到对应 tag 源码
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    # 安装 Go
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.17
+    # 使用 goreleaser 编译 release
+    - name: Create release on GitHub
+      uses: goreleaser/goreleaser-action@v2
+      with:
+        # GoReleaser 版本
+        version: latest
+        # 传递给 GoReleaser 的参数
+        args: release --rm-dist
+      env:
+        # 提供访问仓库token
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
