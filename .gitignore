@@ -23,3 +23,8 @@
 *.iml
 out
 gen
+
+dist/
+/go.sum
+/go_build_morefind
+/result.txt

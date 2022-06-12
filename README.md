@@ -18,4 +18,26 @@ go get github.com/mstxq17/MoreFind
 morefind -h
 ```
 
-2)
+2)导出URL
+```bash
+mofind -u
+```
+
+3)导出域名
+```bash
+mofind -d
+```
+
+4)导出ip
+```bash
+mofind -i
+```
+
+## TODO
+1)优化代码逻辑和结构
+
+2)输出结果自动去重复
+
+3)完善脚本异常处理部分
+
+4)加入部分URL智能去重代码
