@@ -15,23 +15,25 @@ go get github.com/mstxq17/MoreFind
 ## 用法说明
 1)帮助信息
 ```bash
-morefind -h
+MoreFind -h
 ```
+![img.png](img/img.png)
 
 2)导出URL
 ```bash
-mofind -u
+MoreFind -u
 ```
 
 3)导出域名
 ```bash
-mofind -d
+MoreFind -d
 ```
 
 4)导出ip
 ```bash
-mofind -i
+MoreFind -i
 ```
+
 
 ## TODO
 1)优化代码逻辑和结构
