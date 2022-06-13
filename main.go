@@ -1,6 +1,8 @@
 package main
 
-import "morefind/cmd"
+import (
+	"github.com/mstxq17/MoreFind/cmd"
+)
 
 /**
 程序执行流程如下
