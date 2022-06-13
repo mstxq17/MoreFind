@@ -5,7 +5,7 @@
 ## 快速安装
 方式一: 通过Go包管理安装
 ```bash
-go install  github.com/mstxq17/MoreFind@v1.0.4
+go install  github.com/mstxq17/MoreFind@latest
 ```
 方式二: 直接安装二进制文件
 ```bash
