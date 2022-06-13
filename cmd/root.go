@@ -98,7 +98,7 @@ var (
 				}
 			}
 			if output != "" {
-				_output, err := os.OpenFile(output, os.O_RDWR, 0777)
+				_output, err := os.OpenFile(output, os.O_CREATE|os.O_RDWR, 0777)
 				if err != nil {
 					log.Fatal(err)
 				}
