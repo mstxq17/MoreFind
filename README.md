@@ -9,8 +9,8 @@ go install  github.com/mstxq17/MoreFind@latest
 ```
 方式二: 直接安装二进制文件
 ```bash
-wget --no-check-certificate  https://ghproxy.com/https://github.com/mstxq17/MoreFind/releases/download/v1.0.6/MoreFind_1.0.6_`uname -s`_`uname -m`.tar.gz
-tar -xzvf MoreFind_1.0.6_`uname -s`_`uname -m`.tar.gz
+wget --no-check-certificate  https://ghproxy.com/https://github.com/mstxq17/MoreFind/releases/download/v1.0.8/MoreFind_1.0.8_`uname -s`_`uname -m`.tar.gz
+tar -xzvf MoreFind_1.0.8_`uname -s`_`uname -m`.tar.gz
 sudo mv ./MoreFind /usr/bin/MoreFind && chmod +x /usr/bin/MoreFind
 ```
 
@@ -69,14 +69,14 @@ MoreFind -u -d -i -o result.txt
 
 ## TODO
 
-1)优化代码逻辑和结构
+- [x] 输出结果自动去重复 
 
-2)输出结果自动去重复
+- [ ] 完善脚本异常处理部分
 
-3)完善脚本异常处理部分
+- [ ] 加入部分URL智能去重代码
 
-4)加入部分URL智能去重代码
+- [ ] 完善Log的输出和处理
 
-5)完善Log输出处理
+- [ ] 实现自动强制更新
 
-6)实现自动强制更新
+- [ ] 优化代码逻辑、结构和提高执行速度

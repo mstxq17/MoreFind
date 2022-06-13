@@ -65,6 +65,8 @@ var (
 			var urlList []string
 			var domainList []string
 			var ipList []string
+			// remove duplicate url
+			found := make(map[string]bool)
 			//fmt.Println(url, domain, ip)
 			//for sc.Scan() {
 			for {
@@ -85,7 +87,11 @@ var (
 							if output != "" {
 								urlList = append(urlList, _url)
 							}
-							fmt.Println(_url)
+							// remove repeated string
+							if _, ok := found[_url]; !ok {
+								fmt.Println(_url)
+								found[_url] = true
+							}
 						}
 						if myDomain == true {
 							_domain := searchDomain(_url)
@@ -95,7 +101,11 @@ var (
 							if output != "" {
 								domainList = append(domainList, _domain)
 							}
-							fmt.Println(_domain)
+							// remove repeated string
+							if _, ok := found[_domain]; !ok {
+								fmt.Println(_domain)
+								found[_domain] = true
+							}
 						}
 					}
 				}
@@ -105,7 +115,11 @@ var (
 						if output != "" {
 							ipList = append(ipList, _ip)
 						}
-						fmt.Println(_ip)
+						// remove repeated string
+						if _, ok := found[_ip]; !ok {
+							fmt.Println(_ip)
+							found[_ip] = true
+						}
 					}
 				}
 			}
