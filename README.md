@@ -25,27 +25,50 @@ chmod +x ./build.sh && ./build.sh
 ```bash
 MoreFind -h
 ```
-![img.png](img/img.png)
+![img.png](README.assets/img.png)
+
+
 
 2)导出URL
+
 ```bash
 MoreFind -u
 ```
-![img_1.png](img/img_2.png)
+
+![image-20220613101518150](README.assets/image-20220613101518150.png)
+
+
 
 3)导出域名
+
 ```bash
 MoreFind -d
 ```
-![img.png](img/img_1.png)
+
+![image-20220613101624590](README.assets/image-20220613101624590.png)
+
+
 
 4)导出ip
+
 ```bash
 MoreFind -i
 ```
-![img.png](img/img_3.png)
+
+![image-20220613101715993](README.assets/image-20220613101715993.png)
+
+
+
+5)支持导出结果
+
+```bash
+MoreFind -u -d -i -o result.txt
+```
+
+
 
 ## TODO
+
 1)优化代码逻辑和结构
 
 2)输出结果自动去重复
@@ -54,4 +77,6 @@ MoreFind -i
 
 4)加入部分URL智能去重代码
 
-5)实现自动强制更新
+5)完善Log输出处理
+
+6)实现自动强制更新

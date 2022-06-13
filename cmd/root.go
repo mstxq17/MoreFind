@@ -137,7 +137,10 @@ var (
 				}
 			}
 			if err := sc.Err(); err != nil {
-				panic(err)
+				// line too long occurs error
+				//log.Fatal(err)
+				//panic(err)
+				return
 			}
 		},
 	}
