@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/spf13/cobra"
+	"io"
 	"log"
 	"mvdan.cc/xurls/v2"
 	"net/url"
@@ -56,7 +57,8 @@ var (
 			} else {
 				_file = os.Stdin
 			}
-			sc := bufio.NewScanner(_file)
+			//sc := bufio.NewScanner(_file)
+			r := bufio.NewReader(_file)
 			if myUrl == false && myDomain == false && myIp == false {
 				myUrl = true
 			}
@@ -64,11 +66,21 @@ var (
 			var domainList []string
 			var ipList []string
 			//fmt.Println(url, domain, ip)
-			for sc.Scan() {
-				line := sc.Text()
+			//for sc.Scan() {
+			for {
+				line, err := r.ReadString('\n')
+				line = strings.TrimSpace(line)
+				if err != nil && err != io.EOF {
+					panic(err)
+				}
+				if err == io.EOF {
+					break
+				}
+				//line := sc.Text()
 				if myUrl == true || myDomain == true {
 					searchUrl := searchUrl(line)
 					for _, _url := range searchUrl {
+						_url = strings.TrimSpace(_url)
 						if myUrl == true {
 							if output != "" {
 								urlList = append(urlList, _url)
@@ -136,12 +148,12 @@ var (
 					return
 				}
 			}
-			if err := sc.Err(); err != nil {
-				// line too long occurs error
-				//log.Fatal(err)
-				//panic(err)
-				return
-			}
+			//if err := sc.Err(); err != nil {
+			//	// line too long occurs error
+			//	//log.Fatal(err)
+			//	//panic(err)
+			//	return
+			//}
 		},
 	}
 )
