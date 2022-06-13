@@ -9,8 +9,8 @@ go get github.com/mstxq17/MoreFind
 ```
 方式二: 直接安装二进制文件
 ```bash
-wget https://ghproxy.com/https://github.com/mstxq17/MoreFind/releases/download/v1.0.2/MoreFind_1.0.2_`uname -s`_`uname -m`.tar.gz
-tar -xzvf MoreFind_1.0.2_Linux_x86_64.tar.gz
+wget --no-check-certificate  https://ghproxy.com/https://github.com/mstxq17/MoreFind/releases/download/v1.0.2/MoreFind_1.0.2_`uname -s`_`uname -m`.tar.gz
+tar -xzvf MoreFind_1.0.2_`uname -s`_`uname -m`.tar.gz
 sudo mv ./MoreFind /usr/bin/MoreFind && chmod +x /usr/bin/MoreFind
 ```
 
@@ -31,17 +31,19 @@ MoreFind -h
 ```bash
 MoreFind -u
 ```
+![img_1.png](img/img_2.png)
 
 3)导出域名
 ```bash
 MoreFind -d
 ```
+![img.png](img/img_1.png)
 
 4)导出ip
 ```bash
 MoreFind -i
 ```
-
+![img.png](img/img_3.png)
 
 ## TODO
 1)优化代码逻辑和结构
