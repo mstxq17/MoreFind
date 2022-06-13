@@ -19,8 +19,8 @@ func searchUrl(line string) []string {
 
 func searchDomain(line string) string {
 	line = strings.TrimSpace(line)
-	if strings.HasSuffix(line, "http") == false {
-		line = "http" + line
+	if strings.HasPrefix(line, "http") == false {
+		line = "https://" + line
 	}
 	u, err := url.Parse(line)
 	if err != nil {
