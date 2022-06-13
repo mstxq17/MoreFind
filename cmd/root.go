@@ -57,7 +57,6 @@ var (
 			} else {
 				_file = os.Stdin
 			}
-			//sc := bufio.NewScanner(_file)
 			r := bufio.NewReader(_file)
 			if myUrl == false && myDomain == false && myIp == false {
 				myUrl = true
@@ -67,18 +66,15 @@ var (
 			var ipList []string
 			// remove duplicate url
 			found := make(map[string]bool)
-			//fmt.Println(url, domain, ip)
-			//for sc.Scan() {
 			for {
 				line, err := r.ReadString('\n')
-				line = strings.TrimSpace(line)
 				if err != nil && err != io.EOF {
 					panic(err)
 				}
 				if err == io.EOF {
 					break
 				}
-				//line := sc.Text()
+				line = strings.TrimSpace(line)
 				if myUrl == true || myDomain == true {
 					searchUrl := searchUrl(line)
 					for _, _url := range searchUrl {
@@ -135,24 +131,9 @@ var (
 					}
 				}(_output)
 				writer := bufio.NewWriter(_output)
-				for _, line := range urlList {
-					_, err := writer.WriteString(line + "\n")
+				for key := range found {
+					_, err := writer.WriteString(key + "\n")
 					if err != nil {
-						log.Fatal(err)
-						return
-					}
-				}
-				for _, line := range domainList {
-					_, err := writer.WriteString(line + "\n")
-					if err != nil {
-						log.Fatal(err)
-						return
-					}
-				}
-				for _, line := range ipList {
-					_, err := writer.WriteString(line + "\n")
-					if err != nil {
-						log.Fatal(err)
 						return
 					}
 				}
@@ -162,12 +143,6 @@ var (
 					return
 				}
 			}
-			//if err := sc.Err(); err != nil {
-			//	// line too long occurs error
-			//	//log.Fatal(err)
-			//	//panic(err)
-			//	return
-			//}
 		},
 	}
 )
