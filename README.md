@@ -8,9 +8,17 @@
 go get github.com/mstxq17/MoreFind
 ```
 方式二: 直接安装二进制文件
+```bash
+wget https://ghproxy.com/https://github.com/mstxq17/MoreFind/releases/download/v1.0.2/MoreFind_1.0.2_`uname -s`_`uname -m`.tar.gz
+tar -xzvf MoreFind_1.0.2_Linux_x86_64.tar.gz
+sudo mv ./MoreFind /usr/bin/MoreFind && chmod +x /usr/bin/MoreFind
+```
 
 方式三: 本地编译
-
+```bash
+git clone https://github.com/mstxq17/MoreFind.git
+chmod +x ./build.sh && ./build.sh
+```
 
 ## 用法说明
 1)帮助信息

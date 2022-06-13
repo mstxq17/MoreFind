@@ -1,4 +1,4 @@
-module morefind
+module github.com/mstxq17/MoreFind
 
 go 1.17
 
