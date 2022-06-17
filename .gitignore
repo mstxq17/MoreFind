@@ -24,9 +24,9 @@
 out
 gen
 
+*.txt
 dist/
 /go.sum
 /go_build_morefind
 /result.txt
 /target.txt
-/*.txt
