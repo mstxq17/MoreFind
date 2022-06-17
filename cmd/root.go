@@ -7,11 +7,17 @@ import (
 	"io"
 	"log"
 	"mvdan.cc/xurls/v2"
+	"net"
 	"net/url"
 	"os"
 	"regexp"
 	"strings"
 )
+
+func isIPAddr(domain string) bool {
+	ipaddr := net.ParseIP(domain)
+	return ipaddr != nil
+}
 
 func searchUrl(line string) []string {
 	rxStrict := xurls.Relaxed()
@@ -91,7 +97,7 @@ var (
 						}
 						if myDomain == true {
 							_domain := searchDomain(_url)
-							if _domain == "" {
+							if _domain == "" || isIPAddr(_domain) {
 								continue
 							}
 							if output != "" {
