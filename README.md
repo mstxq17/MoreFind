@@ -52,7 +52,10 @@ MoreFind -d
 4)导出ip
 
 ```bash
+# 默认会搜索全部ipv4地址
 MoreFind -i
+# 加上--exclude 或者 -e 会排除属于内网的ip
+MoreFind -i -e
 ```
 
 ![image-20220613101715993](README.assets/image-20220613101715993.png)
@@ -70,6 +73,8 @@ MoreFind -u -d -i -o result.txt
 ## TODO
 
 - [x] 输出结果自动去重复
+
+- [x] 搜索ip的时候支持排除私有IP地址
 
 - [ ] 读取文件流，输出统计信息，显示每行长度
 

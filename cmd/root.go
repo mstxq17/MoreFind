@@ -42,13 +42,20 @@ func searchIp(line string) []string {
 	return ipRegex.FindAllString(line, -1)
 }
 
+func isPrivateIP(line string) bool {
+	var iIRegex = regexp.MustCompile("^(10.\\d{1,3}.\\d{1,3}.((0/([89]|1[0-9]|2\\d|3[012]))|(\\d{1,3})))|(172.(1[6789]|2\\d|3[01]).\\d{1,3}.\\d{1,3}(/(1[6789]|2\\d|3[012]))?)|(192.168.\\d{1,3}.\\d{1,3}(/(1[6789]|2\\d|3[012]))?)$")
+	return iIRegex.MatchString(line)
+}
+
 var (
-	file     string
-	output   string
-	myUrl    bool
-	myDomain bool
-	myIp     bool
-	rootCmd  = &cobra.Command{
+	file        string
+	output      string
+	myUrl       bool
+	myDomain    bool
+	myIp        bool
+	myPrivateIp bool
+	//mylimitLen  int
+	rootCmd = &cobra.Command{
 		Use:   "morefind",
 		Short: "MoreFind is a very fast script for searching URL、Domain and Ip from specified stream",
 		Long:  "",
@@ -119,8 +126,15 @@ var (
 						}
 						// remove repeated string
 						if _, ok := found[_ip]; !ok {
-							fmt.Println(_ip)
-							found[_ip] = true
+							if myPrivateIp == true {
+								if isPrivateIP(_ip) == false {
+									fmt.Println(_ip)
+									found[_ip] = true
+								}
+							} else {
+								fmt.Println(_ip)
+								found[_ip] = true
+							}
 						}
 					}
 				}
@@ -167,6 +181,8 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&file, "file", "f", "", "search the info in specified file")
 	rootCmd.PersistentFlags().StringVarP(&output, "output", "o", "", "output the result to specified file")
 	rootCmd.PersistentFlags().BoolVarP(&myIp, "ip", "i", false, "search ip from stdin or file")
+	rootCmd.PersistentFlags().BoolVarP(&myPrivateIp, "exclude", "e", false, "exclude internal/private segment of ip when searching ip")
 	rootCmd.PersistentFlags().BoolVarP(&myDomain, "domain", "d", false, "search domain from stdin or file")
 	rootCmd.PersistentFlags().BoolVarP(&myUrl, "url", "u", false, "search url from stdin or file")
+	//rootCmd.PersistentFlags().StringVarP(&mylimitLen, "limit", "u", false, "search url from stdin or file")
 }
