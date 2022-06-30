@@ -85,24 +85,18 @@ MoreFind -i -e
 
 ![image-20220613101715993](README.assets/image-20220613101715993.png)
 
-
-
-5) 输出统计信息
+5)输出统计信息
 
 ```bash
 MoreFind -s
 ```
 
-
-
-6) 筛选指定长度字符串
+6)筛选指定长度字符串
 
 ```bash
 MoreFind -l 35 
 MoreFind -l 0-35
 ```
-
-
 
 7)支持导出结果
 
