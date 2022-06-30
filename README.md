@@ -9,7 +9,7 @@ go install  github.com/mstxq17/MoreFind@latest
 ```
 方式二: 直接安装二进制文件
 ```bash
-wget --no-check-certificate  https://ghproxy.com/https://github.com/mstxq17/MoreFind/releases/download/v1.1.0/MoreFind_1.1.0_`uname -s`_`uname -m`.tar.gz
+wget --no-check-certificate  https://ghproxy.com/https://github.com/mstxq17/MoreFind/releases/download/v1.2.0/MoreFind_1.2.0_`uname -s`_`uname -m`.tar.gz
 tar -xzvf MoreFind_1.1.0_`uname -s`_`uname -m`.tar.gz
 sudo mv ./MoreFind /usr/bin/MoreFind && chmod +x /usr/bin/MoreFind
 ```
@@ -25,7 +25,32 @@ chmod +x ./build.sh && ./build.sh
 ```bash
 MoreFind -h
 ```
-![img.png](README.assets/img.png)
+```bash
+MoreFind is a very fast script for searching URL、Domain and Ip from specified stream
+
+Usage:
+  morefind [flags]
+  morefind [command]
+
+Available Commands:
+  completion  Generate the autocompletion script for the specified shell
+  help        Help about any command
+  version     Print the semantic version number of MoreFind
+
+Flags:
+  -d, --domain          search domain from stdin or file
+  -e, --exclude         exclude internal/private segment of ip when searching ip
+  -f, --file string     search the info in specified file
+  -h, --help            help for morefind
+  -i, --ip              search ip from stdin or file
+  -l, --len string      search specify the length of string, "-l 35" == "-l 0-35" 
+  -o, --output string   output the result to specified file
+  -s, --show            show the length of each line and summaries
+  -u, --url             search url from stdin or file
+
+Use "morefind [command] --help" for more information about a command.
+
+```
 
 
 
@@ -62,10 +87,35 @@ MoreFind -i -e
 
 
 
-5)支持导出结果
+5) 输出统计信息
+
+```bash
+MoreFind -s
+```
+
+
+
+6) 筛选指定长度字符串
+
+```bash
+MoreFind -l 35 
+MoreFind -l 0-35
+```
+
+
+
+7)支持导出结果
 
 ```bash
 MoreFind -u -d -i -o result.txt
+```
+
+
+
+8)联动使用
+
+```bash
+echo -e 'baidu.com ccccxxxx 1.com'|MoreFind -d |MoreFind -l 5  
 ```
 
 
@@ -76,9 +126,9 @@ MoreFind -u -d -i -o result.txt
 
 - [x] 搜索ip的时候支持排除私有IP地址
 
-- [ ] 读取文件流，输出统计信息，显示每行长度
+- [x] 读取文件流，输出统计信息，显示每行长度
 
-- [ ] 可指定每行长度筛选出符合条件的字符串
+- [x] 可指定每行长度筛选出符合条件的字符串
 
 - [ ] 完善脚本异常处理部分
 

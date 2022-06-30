@@ -11,12 +11,18 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
 func isIPAddr(domain string) bool {
 	ipaddr := net.ParseIP(domain)
 	return ipaddr != nil
+}
+
+func isPrivateIP(line string) bool {
+	var iIRegex = regexp.MustCompile("^(10.\\d{1,3}.\\d{1,3}.((0/([89]|1[0-9]|2\\d|3[012]))|(\\d{1,3})))|(172.(1[6789]|2\\d|3[01]).\\d{1,3}.\\d{1,3}(/(1[6789]|2\\d|3[012]))?)|(192.168.\\d{1,3}.\\d{1,3}(/(1[6789]|2\\d|3[012]))?)$")
+	return iIRegex.MatchString(line)
 }
 
 func searchUrl(line string) []string {
@@ -42,9 +48,21 @@ func searchIp(line string) []string {
 	return ipRegex.FindAllString(line, -1)
 }
 
-func isPrivateIP(line string) bool {
-	var iIRegex = regexp.MustCompile("^(10.\\d{1,3}.\\d{1,3}.((0/([89]|1[0-9]|2\\d|3[012]))|(\\d{1,3})))|(172.(1[6789]|2\\d|3[01]).\\d{1,3}.\\d{1,3}(/(1[6789]|2\\d|3[012]))?)|(192.168.\\d{1,3}.\\d{1,3}(/(1[6789]|2\\d|3[012]))?)$")
-	return iIRegex.MatchString(line)
+func filterLen(lenRange string) (int, int) {
+	standardPattern := regexp.MustCompile("^\\d+-\\d+$")
+	oneIntPattern := regexp.MustCompile("^\\d+$")
+	if standardPattern.MatchString(lenRange) {
+		splitRes := strings.Split(lenRange, "-")
+		minLength, _ := strconv.Atoi(splitRes[0])
+		maxLength, _ := strconv.Atoi(splitRes[1])
+		return minLength, maxLength
+	} else if oneIntPattern.MatchString(lenRange) {
+		maxLength, _ := strconv.Atoi(lenRange)
+		return 0, maxLength
+	} else {
+		log.Fatal("len Range Invalid, format should be 'min-max', ex 0-100")
+		return 0, 0
+	}
 }
 
 var (
@@ -54,8 +72,9 @@ var (
 	myDomain    bool
 	myIp        bool
 	myPrivateIp bool
-	//mylimitLen  int
-	rootCmd = &cobra.Command{
+	myLimitLen  string
+	myShow      bool
+	rootCmd     = &cobra.Command{
 		Use:   "morefind",
 		Short: "MoreFind is a very fast script for searching URL、Domain and Ip from specified stream",
 		Long:  "",
@@ -71,6 +90,52 @@ var (
 				_file = os.Stdin
 			}
 			r := bufio.NewReader(_file)
+			// todo: current structure may be chaotic, should abstract the handle process
+			// if show flag be selected，deal with it first
+			if myUrl == false && myDomain == false && myIp == false {
+				if myShow == true {
+					count := 0
+					maxLength := 0
+					minLength := 0
+					first := true
+					for {
+						line, err := r.ReadString('\n')
+						if err != nil {
+							break
+						}
+						lineLength := strconv.Itoa(len(line))
+						if len(line) > maxLength {
+							maxLength = len(line)
+						}
+						if len(line) > 0 && first == true {
+							minLength = len(line)
+							first = false
+						}
+						if len(line) < minLength && first == false {
+							minLength = len(line)
+						}
+						count++
+						fmt.Printf("%-5d%-7s\t%s", count, " Len:"+lineLength, line)
+					}
+					fmt.Println("\n==================================================")
+					fmt.Printf("CountLine: %d MaxLength: %d, MinLength: %d\n", count, maxLength, minLength)
+					return
+				}
+				if myLimitLen != "" {
+					min, max := filterLen(myLimitLen)
+					for {
+						line, err := r.ReadString('\n')
+						line = strings.TrimSpace(line)
+						if err != nil {
+							break
+						}
+						if min <= len(line) && len(line) <= max {
+							fmt.Println(line)
+						}
+					}
+					return
+				}
+			}
 			if myUrl == false && myDomain == false && myIp == false {
 				myUrl = true
 			}
@@ -184,5 +249,6 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&myPrivateIp, "exclude", "e", false, "exclude internal/private segment of ip when searching ip")
 	rootCmd.PersistentFlags().BoolVarP(&myDomain, "domain", "d", false, "search domain from stdin or file")
 	rootCmd.PersistentFlags().BoolVarP(&myUrl, "url", "u", false, "search url from stdin or file")
-	//rootCmd.PersistentFlags().StringVarP(&mylimitLen, "limit", "u", false, "search url from stdin or file")
+	rootCmd.PersistentFlags().StringVarP(&myLimitLen, "len", "l", "", "search specify the length of string, \"-l 35\" == \"-l 0-35\" ")
+	rootCmd.PersistentFlags().BoolVarP(&myShow, "show", "s", false, "show the length of each line and summaries")
 }
