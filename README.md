@@ -68,6 +68,9 @@ MoreFind -u
 
 ```bash
 MoreFind -d
+# append -root or -r param can only search rootdomain
+# 通过加上 -root 或 -r 参数能够只显示根域名
+MoreFind -d -root
 ```
 
 ![image-20220613101624590](README.assets/image-20220613101624590.png)
@@ -119,6 +122,8 @@ echo -e 'baidu.com ccccxxxx 1.com'|MoreFind -d |MoreFind -l 5
 - [x] 输出结果自动去重复
 
 - [x] 搜索ip的时候支持排除私有IP地址
+
+- [x] 支持搜索域名的时候根据etld+1的形式只显示根域名
 
 - [x] 读取文件流，输出统计信息，显示每行长度
 

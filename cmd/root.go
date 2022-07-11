@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/spf13/cobra"
+	"golang.org/x/net/publicsuffix"
 	"io"
 	"log"
 	"mvdan.cc/xurls/v2"
@@ -30,7 +31,7 @@ func searchUrl(line string) []string {
 	return rxStrict.FindAllString(line, -1)
 }
 
-func searchDomain(line string) string {
+func searchDomain(line string, rootDomain bool) string {
 	line = strings.TrimSpace(line)
 	if strings.HasPrefix(line, "http") == false {
 		line = "https://" + line
@@ -39,7 +40,22 @@ func searchDomain(line string) string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	return u.Hostname()
+	if rootDomain {
+		return searchRootDomain(u.Hostname())
+	} else {
+		return u.Hostname()
+	}
+}
+
+// Reference:https://pkg.go.dev/golang.org/x/net/publicsuffix
+/*
+Description: search the eTLD + 1(rootDOmain) from the completed domain
+param domain: completed domain
+return: rootDomain
+*/
+func searchRootDomain(domain string) string {
+	eTLD, _ := publicsuffix.EffectiveTLDPlusOne(domain)
+	return eTLD
 }
 
 func searchIp(line string) []string {
@@ -66,15 +82,16 @@ func filterLen(lenRange string) (int, int) {
 }
 
 var (
-	file        string
-	output      string
-	myUrl       bool
-	myDomain    bool
-	myIp        bool
-	myPrivateIp bool
-	myLimitLen  string
-	myShow      bool
-	rootCmd     = &cobra.Command{
+	file         string
+	output       string
+	myUrl        bool
+	myDomain     bool
+	myRootDomain bool
+	myIp         bool
+	myPrivateIp  bool
+	myLimitLen   string
+	myShow       bool
+	rootCmd      = &cobra.Command{
 		Use:   "morefind",
 		Short: "MoreFind is a very fast script for searching URL、Domain and Ip from specified stream",
 		Long:  "",
@@ -168,7 +185,7 @@ var (
 							}
 						}
 						if myDomain == true {
-							_domain := searchDomain(_url)
+							_domain := searchDomain(_url, myRootDomain)
 							if _domain == "" || isIPAddr(_domain) {
 								continue
 							}
@@ -248,6 +265,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&myIp, "ip", "i", false, "search ip from stdin or file")
 	rootCmd.PersistentFlags().BoolVarP(&myPrivateIp, "exclude", "e", false, "exclude internal/private segment of ip when searching ip")
 	rootCmd.PersistentFlags().BoolVarP(&myDomain, "domain", "d", false, "search domain from stdin or file")
+	rootCmd.PersistentFlags().BoolVarP(&myRootDomain, "root", "r", false, "only output the rootDomain when searching domain")
 	rootCmd.PersistentFlags().BoolVarP(&myUrl, "url", "u", false, "search url from stdin or file")
 	rootCmd.PersistentFlags().StringVarP(&myLimitLen, "len", "l", "", "search specify the length of string, \"-l 35\" == \"-l 0-35\" ")
 	rootCmd.PersistentFlags().BoolVarP(&myShow, "show", "s", false, "show the length of each line and summaries")

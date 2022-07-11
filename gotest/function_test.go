@@ -1,6 +1,7 @@
 package gotest
 
 import (
+	"golang.org/x/net/publicsuffix"
 	"regexp"
 	"testing"
 )
@@ -15,6 +16,11 @@ func isPrivateIP(line string) bool {
 	return iIRegex.MatchString(line)
 }
 
+func searchRootDomain(domain string) string {
+	eTLD, _ := publicsuffix.EffectiveTLDPlusOne(domain)
+	return eTLD
+}
+
 func Test_isPrivateIP(t *testing.T) {
 	testCase1 := "192.168.1.1"
 	testCase2 := "111.210.196.23"
@@ -23,4 +29,21 @@ func Test_isPrivateIP(t *testing.T) {
 	} else {
 		t.Error("测试失败")
 	}
+}
+
+func Test_searchRootDomain(t *testing.T) {
+	testDomains := []string{
+		"x.baidu.com",
+		"kk.qq.com",
+		"x11.xxx.github.io",
+		"h.x.中国",
+	}
+	for _, domain := range testDomains {
+		rootDomain := searchRootDomain(domain)
+		if domain == rootDomain {
+			t.Error("测试失败")
+		}
+		t.Log(rootDomain + " pass")
+	}
+	t.Log("全部测试通过")
 }
