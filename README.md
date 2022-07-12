@@ -39,12 +39,13 @@ Available Commands:
 
 Flags:
   -d, --domain          search domain from stdin or file
-  -e, --exclude         exclude internal/private segment of ip when searching ip
+      --exclude         exclude internal/private segment of ip when searching ip
   -f, --file string     search the info in specified file
   -h, --help            help for morefind
   -i, --ip              search ip from stdin or file
   -l, --len string      search specify the length of string, "-l 35" == "-l 0-35" 
   -o, --output string   output the result to specified file
+      --root            only output the rootDomain when searching domain
   -s, --show            show the length of each line and summaries
   -u, --url             search url from stdin or file
 
