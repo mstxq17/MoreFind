@@ -81,6 +81,45 @@ func filterLen(lenRange string) (int, int) {
 	}
 }
 
+// the below two function can be merged and optimized
+// 下面两个函数可以根据运行结构，将url解析那一部分抽象出来统一调用
+func filterExt(_url string, filterExts string) bool {
+	fileExt := fileExt(_url)
+	_exts := strings.Split(filterExts, ",")
+	// for improve the filtering speed, reducing the comparative worke，use map
+	// 为了提高速度，减少比较，使用map来判断
+	extMap := map[string]int{}
+	for _, suffix := range _exts {
+		// convert to lowercase uniformly
+		// 统一小写
+		suffix = strings.TrimSpace(suffix)
+		suffix = strings.ToLower(suffix)
+		extMap[suffix] = 1
+	}
+	if _, ok := extMap[fileExt]; ok {
+		return true
+	} else {
+		return false
+	}
+}
+
+func fileExt(_url string) string {
+	u, err := url.Parse(_url)
+	if err != nil {
+		log.Fatal(err)
+	}
+	part := strings.Split(u.Path, "/")
+	fileName := part[len(part)-1]
+	if strings.Contains(fileName, ".") {
+		filePart := strings.Split(fileName, ".")
+		// convert to lowercase
+		// 统一转换为小写
+		return strings.ToLower(filePart[len(filePart)-1])
+	} else {
+		return ""
+	}
+}
+
 var (
 	file         string
 	output       string
@@ -91,6 +130,7 @@ var (
 	myPrivateIp  bool
 	myLimitLen   string
 	myShow       bool
+	myUrlFilter  string
 	rootCmd      = &cobra.Command{
 		Use:   "morefind",
 		Short: "MoreFind is a very fast script for searching URL、Domain and Ip from specified stream",
@@ -180,8 +220,15 @@ var (
 							}
 							// remove repeated string
 							if _, ok := found[_url]; !ok {
-								fmt.Println(_url)
-								found[_url] = true
+								if myUrlFilter != "" {
+									if !filterExt(_url, myUrlFilter) {
+										fmt.Println(_url)
+										found[_url] = true
+									}
+								} else {
+									fmt.Println(_url)
+									found[_url] = true
+								}
 							}
 						}
 						if myDomain == true {
@@ -267,6 +314,8 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&myDomain, "domain", "d", false, "search domain from stdin or file")
 	rootCmd.PersistentFlags().BoolVarP(&myRootDomain, "root", "", false, "only output the rootDomain when searching domain")
 	rootCmd.PersistentFlags().BoolVarP(&myUrl, "url", "u", false, "search url from stdin or file")
+	rootCmd.PersistentFlags().StringVarP(&myUrlFilter, "filter", "", "", "filter url with some useless ext")
+	rootCmd.PersistentFlags().Lookup("filter").NoOptDefVal = "js,css,json,png,jpg,html,xml,zip,rar"
 	rootCmd.PersistentFlags().StringVarP(&myLimitLen, "len", "l", "", "search specify the length of string, \"-l 35\" == \"-l 0-35\" ")
 	rootCmd.PersistentFlags().BoolVarP(&myShow, "show", "s", false, "show the length of each line and summaries")
 }

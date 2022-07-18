@@ -9,8 +9,8 @@ go install  github.com/mstxq17/MoreFind@latest
 ```
 方式二: 直接安装二进制文件
 ```bash
-wget --no-check-certificate  https://ghproxy.com/https://github.com/mstxq17/MoreFind/releases/download/v1.2.2/MoreFind_1.2.2_`uname -s`_`uname -m`.tar.gz
-tar -xzvf MoreFind_1.2.2_`uname -s`_`uname -m`.tar.gz
+wget --no-check-certificate  https://ghproxy.com/https://github.com/mstxq17/MoreFind/releases/download/v1.2.3/MoreFind_1.2.3_`uname -s`_`uname -m`.tar.gz
+tar -xzvf MoreFind_1.2.3_`uname -s`_`uname -m`.tar.gz
 sudo mv ./MoreFind /usr/bin/MoreFind && chmod +x /usr/bin/MoreFind
 ```
 
@@ -59,6 +59,9 @@ Use "morefind [command] --help" for more information about a command.
 
 ```bash
 MoreFind -u
+# append --filter(default:js,css,json,png,jpg,html,xml,zip,rar) or --filter="png,jpg,xls,custom..."
+# 通过添加参数 --filter(默认排除常见静态文件) 或者 通过 --filter="png,jpg" 自定义需要排除的后缀
+MoreFind  -u --filter="png"
 ```
 
 ![image-20220613101518150](README.assets/image-20220613101518150.png)
@@ -124,13 +127,15 @@ echo -e 'baidu.com ccccxxxx 1.com'|MoreFind -d |MoreFind -l 5
 
 - [x] 搜索ip的时候支持排除私有IP地址
 
+- [x] 搜索URL的时候支持排除自定义后缀的URL
+
 - [x] 支持搜索域名的时候根据etld+1的形式只显示根域名
 
 - [x] 读取文件流，输出统计信息，显示每行长度
 
 - [x] 可指定每行长度筛选出符合条件的字符串
 
-- [ ] 完善脚本异常处理部分
+- [ ] 重新设计代码结构，并完善脚本异常处理部分
 
 - [ ] 加入部分URL智能去重代码
 
@@ -138,4 +143,4 @@ echo -e 'baidu.com ccccxxxx 1.com'|MoreFind -d |MoreFind -l 5
 
 - [ ] 实现自动强制更新
 
-- [ ] 优化代码逻辑、结构和提高执行速度
+- [ ] 优化项目代码和提高执行速度

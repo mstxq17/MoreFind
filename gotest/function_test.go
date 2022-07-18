@@ -2,7 +2,11 @@ package gotest
 
 import (
 	"golang.org/x/net/publicsuffix"
+	"log"
+	"net/url"
 	"regexp"
+	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -19,6 +23,42 @@ func isPrivateIP(line string) bool {
 func searchRootDomain(domain string) string {
 	eTLD, _ := publicsuffix.EffectiveTLDPlusOne(domain)
 	return eTLD
+}
+
+func filterExt(fileExt string, filterExts string) bool {
+	_exts := strings.Split(filterExts, ",")
+	// for improve the filtering speed, reducing the comparative worke，use map
+	// 为了提高速度，减少比较，使用map来判断
+	extMap := map[string]int{}
+	for _, suffix := range _exts {
+		// convert to lowercase uniformly
+		// 统一小写
+		suffix = strings.TrimSpace(suffix)
+		suffix = strings.ToLower(suffix)
+		extMap[suffix] = 1
+	}
+	if _, ok := extMap[fileExt]; ok {
+		return true
+	} else {
+		return false
+	}
+}
+
+func fileExt(_url string) string {
+	u, err := url.Parse(_url)
+	if err != nil {
+		log.Fatal(err)
+	}
+	part := strings.Split(u.Path, "/")
+	fileName := part[len(part)-1]
+	if strings.Contains(fileName, ".") {
+		filePart := strings.Split(fileName, ".")
+		// convert to lowercase
+		// 统一转换为小写
+		return strings.ToLower(filePart[len(filePart)-1])
+	} else {
+		return ""
+	}
 }
 
 func Test_isPrivateIP(t *testing.T) {
@@ -46,4 +86,53 @@ func Test_searchRootDomain(t *testing.T) {
 		t.Log(rootDomain + " pass")
 	}
 	t.Log("全部测试通过")
+}
+
+func Test_fileExt(t *testing.T) {
+	testUrls := []string{
+		"https://baidu.com/",
+		"https://baidu.com/123",
+		"https://baidu.com/123.png",
+		"https://baidu.com/123.png.jpg",
+	}
+	for index, _url := range testUrls {
+		t.Log(strconv.Itoa(index) + ":" + _url)
+		switch index {
+		case 0:
+			t.Log("fileExt:" + fileExt(_url))
+			if fileExt(_url) != "" {
+				t.Error("测试失败")
+			}
+		case 1:
+			t.Log("fileExt:" + fileExt(_url))
+			if fileExt(_url) != "" {
+				t.Error("测试失败")
+			}
+		case 2:
+			t.Log("fileExt:" + fileExt(_url))
+			if fileExt(_url) != "png" {
+				t.Error("测试失败")
+			}
+		case 3:
+			t.Log("fileExt:" + fileExt(_url))
+			if fileExt(_url) != "jpg" {
+				t.Error("测试失败")
+			}
+		}
+	}
+}
+
+func Test_filterExt(t *testing.T) {
+	testUrl := "https://baidu.com/123.png"
+	if filterExt(fileExt(testUrl), "png, jpg") {
+		t.Log("测试通过")
+	} else {
+		t.Error("测试失败")
+	}
+	testUrl1 := "https://baidu.com/"
+	if filterExt(fileExt(testUrl1), "png, jpg") {
+		t.Error("测试失败")
+	} else {
+		t.Log("测试通过")
+	}
 }
