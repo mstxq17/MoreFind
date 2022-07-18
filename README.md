@@ -9,8 +9,8 @@ go install  github.com/mstxq17/MoreFind@latest
 ```
 方式二: 直接安装二进制文件
 ```bash
-wget --no-check-certificate  https://ghproxy.com/https://github.com/mstxq17/MoreFind/releases/download/v1.2.3/MoreFind_1.2.3_`uname -s`_`uname -m`.tar.gz
-tar -xzvf MoreFind_1.2.3_`uname -s`_`uname -m`.tar.gz
+wget --no-check-certificate  https://ghproxy.com/https://github.com/mstxq17/MoreFind/releases/download/v1.2.4/MoreFind_1.2.4_`uname -s`_`uname -m`.tar.gz
+tar -xzvf MoreFind_1.2.4_`uname -s`_`uname -m`.tar.gz
 sudo mv ./MoreFind /usr/bin/MoreFind && chmod +x /usr/bin/MoreFind
 ```
 
@@ -38,18 +38,20 @@ Available Commands:
   version     Print the semantic version number of MoreFind
 
 Flags:
-  -d, --domain          search domain from stdin or file
-      --exclude         exclude internal/private segment of ip when searching ip
-  -f, --file string     search the info in specified file
-  -h, --help            help for morefind
-  -i, --ip              search ip from stdin or file
-  -l, --len string      search specify the length of string, "-l 35" == "-l 0-35" 
-  -o, --output string   output the result to specified file
-      --root            only output the rootDomain when searching domain
-  -s, --show            show the length of each line and summaries
-  -u, --url             search url from stdin or file
+  -d, --domain                                                   search domain from stdin or file(搜索域名)
+      --exclude                                                  exclude internal/private segment of ip when searching ip(排除内网IP)
+  -f, --file string                                              search the info in specified file(指定输入文件)
+      --filter string[="js,css,json,png,jpg,html,xml,zip,rar"]   filter url with some useless ext(排除指定后缀的URL)
+  -h, --help                                                     help for morefind
+  -i, --ip                                                       search ip from stdin or file(搜索IP)
+  -l, --len string                                               search specify the length of string, "-l 35" == "-l 0-35" (输出指定长度的行)
+  -o, --output string                                            output the result to specified file(指定输出文件)
+      --root                                                     only output the rootDomain when searching domain(只显示主域名)
+  -s, --show                                                     show the length of each line and summaries(输出统计信息)
+  -u, --url                                                      search url from stdin or file(搜索URL)
 
 Use "morefind [command] --help" for more information about a command.
+
 
 ```
 
@@ -134,6 +136,8 @@ echo -e 'baidu.com ccccxxxx 1.com'|MoreFind -d |MoreFind -l 5
 - [x] 读取文件流，输出统计信息，显示每行长度
 
 - [x] 可指定每行长度筛选出符合条件的字符串
+
+- [x] 增加命令行中文版本，防止自己的蹩脚英语影响使用
 
 - [ ] 重新设计代码结构，并完善脚本异常处理部分
 
