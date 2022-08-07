@@ -40,6 +40,9 @@ func searchDomain(line string, rootDomain bool) string {
 	if err != nil {
 		log.Fatal(err)
 	}
+	if isIPAddr(u.Hostname()) {
+		return u.Hostname()
+	}
 	if rootDomain {
 		return searchRootDomain(u.Hostname())
 	} else {
@@ -157,7 +160,11 @@ var (
 					first := true
 					for {
 						line, err := r.ReadString('\n')
-						if err != nil {
+						if err == io.EOF && len(line) == 0 {
+							break
+						}
+						// 单行的情况会报错
+						if err != nil && err != io.EOF {
 							break
 						}
 						lineLength := strconv.Itoa(len(line))
@@ -183,7 +190,11 @@ var (
 					for {
 						line, err := r.ReadString('\n')
 						line = strings.TrimSpace(line)
-						if err != nil {
+						if err == io.EOF && len(line) == 0 {
+							break
+						}
+						// 单行的情况会报错
+						if err != nil && err != io.EOF {
 							break
 						}
 						if min <= len(line) && len(line) <= max {
@@ -203,10 +214,11 @@ var (
 			found := make(map[string]bool)
 			for {
 				line, err := r.ReadString('\n')
-				if err != nil && err != io.EOF {
-					panic(err)
+				if err == io.EOF && len(line) == 0 {
+					break
 				}
-				if err == io.EOF {
+				// 单行的情况会报错
+				if err != nil && err != io.EOF {
 					break
 				}
 				line = strings.TrimSpace(line)
