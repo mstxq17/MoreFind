@@ -27,10 +27,10 @@ func isPrivateIP(line string) bool {
 }
 
 func searchUrl(line string) []string {
-	rxStrict := xurls.Relaxed()
-	return rxStrict.FindAllString(line, -1)
+	rxRelaxed := xurls.Relaxed()
+	result := rxRelaxed.FindAllString(line, -1)
+	return result
 }
-
 func searchDomain(line string, rootDomain bool) string {
 	line = strings.TrimSpace(line)
 	if strings.HasPrefix(line, "http") == false {
@@ -40,13 +40,23 @@ func searchDomain(line string, rootDomain bool) string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if isIPAddr(u.Hostname()) {
-		return u.Hostname()
+
+	domain := u.Hostname()
+	// match the domain strictly
+	// 严格匹配域名格式
+	index := strings.Index(domain, ",")
+	// 修复存在逗号的bug
+	// patch the bug it contains  comma
+	if index >= 0 {
+		domain = domain[:index]
+	}
+	if isIPAddr(domain) {
+		return domain
 	}
 	if rootDomain {
-		return searchRootDomain(u.Hostname())
+		return searchRootDomain(domain)
 	} else {
-		return u.Hostname()
+		return domain
 	}
 }
 
