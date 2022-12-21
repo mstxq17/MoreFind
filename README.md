@@ -89,7 +89,7 @@ MoreFind  -u --filter="png"
 MoreFind -d
 # append -root or -r param can only search rootdomain
 # 通过加上 -root 或 -r 参数能够只显示根域名
-MoreFind -d -root
+MoreFind -d --root
 ```
 
 ![image-20221221224723254](README.assets/image-20221221224723254.png)
