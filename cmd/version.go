@@ -14,6 +14,6 @@ var versionCmd = &cobra.Command{
 	Short: "Print the semantic version number of MoreFind",
 	Long:  `All software has versions. This is MoreFind's`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("MoreFind v1.2.6")
+		fmt.Println("MoreFind v1.2.7")
 	},
 }

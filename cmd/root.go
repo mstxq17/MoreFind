@@ -31,16 +31,23 @@ func searchUrl(line string) []string {
 	result := rxRelaxed.FindAllString(line, -1)
 	return result
 }
+
 func searchDomain(line string, rootDomain bool) string {
 	line = strings.TrimSpace(line)
 	if strings.HasPrefix(line, "http") == false {
 		line = "https://" + line
 	}
+	// bug fix #2
+	// 修复issue #2
+	_, exists := os.LookupEnv("hiddenDev")
+	if !exists {
+		line = deepMakeUrl(line)
+	}
 	u, err := url.Parse(line)
 	if err != nil {
+		// 直接抛出错误
 		log.Fatal(err)
 	}
-
 	domain := u.Hostname()
 	// match the domain strictly
 	// 严格匹配域名格式
@@ -117,9 +124,17 @@ func filterExt(_url string, filterExts string) bool {
 }
 
 func fileExt(_url string) string {
+	// bug fix #2
+	// 修复issue #2
+	_, exists := os.LookupEnv("hiddenDev")
+	if !exists {
+		_url = deepMakeUrl(_url)
+	}
 	u, err := url.Parse(_url)
 	if err != nil {
-		log.Fatal(err)
+		// ignore the exception for preventing from blocking next line
+		// 忽略异常防止阻塞下一行的处理
+		//log.Fatal(err)
 	}
 	part := strings.Split(u.Path, "/")
 	fileName := part[len(part)-1]
