@@ -88,7 +88,7 @@ MoreFind  -u --filter="png"
 ```bash
 MoreFind -d
 # append -root or -r param can only search rootdomain
-# 通过加上 -root 或 -r 参数能够只显示根域名
+# 通过加上 --root 或 -r 参数能够只显示根域名
 MoreFind -d --root
 ```
 
