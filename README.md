@@ -1,4 +1,6 @@
 # MoreFind
+![GitHub Repo stars](https://img.shields.io/github/stars/mstxq17/morefind?style=social) [![Go Report Card](https://goreportcard.com/badge/github.com/mstxq17/MoreFind)](https://goreportcard.com/report/github.com/mstxq17/MoreFind) ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/mstxq17/MoreFind) ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/mstxq17/MoreFind)
+
 一款用于快速导出URL、Domain和IP的小工具
 
 
