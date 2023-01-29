@@ -11,8 +11,8 @@ go install  github.com/mstxq17/MoreFind@latest
 ```
 方式二: 直接安装二进制文件
 ```bash
-wget --no-check-certificate  https://ghproxy.com/https://github.com/mstxq17/MoreFind/releases/download/v1.2.7/MoreFind_1.2.7_`uname -s`_`uname -m`.tar.gz
-tar -xzvf MoreFind_1.2.7_`uname -s`_`uname -m`.tar.gz
+wget --no-check-certificate  https://ghproxy.com/https://github.com/mstxq17/MoreFind/releases/download/v1.2.8/MoreFind_1.2.8_`uname -s`_`uname -m`.tar.gz
+tar -xzvf MoreFind_1.2.8_`uname -s`_`uname -m`.tar.gz
 sudo mv ./MoreFind /usr/bin/MoreFind && chmod +x /usr/bin/MoreFind
 ```
 
@@ -89,9 +89,12 @@ MoreFind  -u --filter="png"
 
 ```bash
 MoreFind -d
-# append -root or -r param can only search rootdomain
-# 通过加上 --root 或 -r 参数能够只显示根域名
+# append -root param can only search rootdomain
+# 通过加上 --root 参数能够只显示根域名
 MoreFind -d --root
+# append --port param can retain domain:port format
+# 通过加上 --port 参数保留域名:端口的格式，搭配grep
+MoreFind -d --port
 ```
 
 ![image-20221221224723254](README.assets/image-20221221224723254.png)
@@ -143,6 +146,7 @@ echo -e 'baidu.com ccccxxxx 1.com'|MoreFind -d |MoreFind -l 5
 - [x] 输出结果自动去重复
 - [x] 搜索ip的时候支持排除私有IP地址
 - [x] 搜索URL的时候支持排除自定义后缀的URL
+- [x] 增加返回结果形式，支持过滤数据返回`域名:port`的格式
 - [x] 支持搜索域名的时候根据etld+1的形式只显示根域名
 - [x] 读取文件流，输出统计信息，显示每行长度
 - [x] 可指定每行长度筛选出符合条件的字符串
