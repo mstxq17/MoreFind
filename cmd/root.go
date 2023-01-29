@@ -32,7 +32,10 @@ func searchUrl(line string) []string {
 	return result
 }
 
-func searchDomain(line string, rootDomain bool) string {
+func searchDomain(line string, rootDomain bool, myDomainPort bool) (string, string) {
+	/**
+	匹配域名并输出
+	*/
 	line = strings.TrimSpace(line)
 	if strings.HasPrefix(line, "http") == false {
 		line = "https://" + line
@@ -49,6 +52,7 @@ func searchDomain(line string, rootDomain bool) string {
 		log.Fatal(err)
 	}
 	domain := u.Hostname()
+	port := u.Port()
 	// match the domain strictly
 	// 严格匹配域名格式
 	index := strings.Index(domain, ",")
@@ -58,12 +62,12 @@ func searchDomain(line string, rootDomain bool) string {
 		domain = domain[:index]
 	}
 	if isIPAddr(domain) {
-		return domain
+		return port, domain
 	}
 	if rootDomain {
-		return searchRootDomain(domain)
+		return port, searchRootDomain(domain)
 	} else {
-		return domain
+		return port, domain
 	}
 }
 
@@ -154,6 +158,7 @@ var (
 	myUrl        bool
 	myDomain     bool
 	myRootDomain bool
+	myDomainPort bool
 	myIp         bool
 	myPrivateIp  bool
 	myLimitLen   string
@@ -269,9 +274,14 @@ var (
 							}
 						}
 						if myDomain == true {
-							_domain := searchDomain(_url, myRootDomain)
+							port, _domain := searchDomain(_url, myRootDomain, myDomainPort)
 							if _domain == "" || isIPAddr(_domain) {
 								continue
+							}
+							if myDomainPort {
+								if port != "" {
+									_domain = _domain + ":" + port
+								}
 							}
 							if output != "" {
 								domainList = append(domainList, _domain)
@@ -350,6 +360,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&myPrivateIp, "exclude", "", false, "exclude internal/private segment of ip when searching ip(排除内网IP)")
 	rootCmd.PersistentFlags().BoolVarP(&myDomain, "domain", "d", false, "search domain from stdin or file(搜索域名)")
 	rootCmd.PersistentFlags().BoolVarP(&myRootDomain, "root", "", false, "only output the rootDomain when searching domain(只显示主域名)")
+	rootCmd.PersistentFlags().BoolVarP(&myDomainPort, "port", "", false, "only filter out domain:port (保留域名和端口)")
 	rootCmd.PersistentFlags().BoolVarP(&myUrl, "url", "u", false, "search url from stdin or file(搜索URL)")
 	rootCmd.PersistentFlags().StringVarP(&myUrlFilter, "filter", "", "", "filter url with some useless ext(排除指定后缀的URL)")
 	// this trick occurs from https://stackoverflow.com/questions/70182858/how-to-create-flag-with-or-without-argument-in-golang-using-cobra
