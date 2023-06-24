@@ -1,8 +1,10 @@
 package gotest
 
 import (
+	"fmt"
 	"golang.org/x/net/publicsuffix"
 	"log"
+	"net"
 	"net/url"
 	"regexp"
 	"strconv"
@@ -59,6 +61,30 @@ func fileExt(_url string) string {
 	} else {
 		return ""
 	}
+}
+
+func inc(ip net.IP) {
+	for j := len(ip) - 1; j >= 0; j-- {
+		ip[j]++
+		if ip[j] > 0 {
+			break
+		}
+	}
+}
+
+func genIP(cidr string) {
+	ip, ipnet, err := net.ParseCIDR(cidr)
+	if err != nil {
+		fmt.Println("无法解析CIDR地址:", err)
+	}
+	for ip := ip.Mask(ipnet.Mask); ipnet.Contains(ip); inc(ip) {
+		fmt.Println(ip)
+	}
+}
+
+func Test_genIP(t *testing.T) {
+	testCase1 := "192.168.1.0/29"
+	genIP(testCase1)
 }
 
 func Test_isPrivateIP(t *testing.T) {

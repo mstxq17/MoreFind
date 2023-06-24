@@ -11,8 +11,8 @@ go install  github.com/mstxq17/MoreFind@latest
 ```
 方式二: 直接安装二进制文件
 ```bash
-wget --no-check-certificate  https://ghproxy.com/https://github.com/mstxq17/MoreFind/releases/download/v1.2.8/MoreFind_1.2.8_`uname -s`_`uname -m`.tar.gz
-tar -xzvf MoreFind_1.2.8_`uname -s`_`uname -m`.tar.gz
+wget --no-check-certificate  https://ghproxy.com/https://github.com/mstxq17/MoreFind/releases/download/v1.2.9/MoreFind_1.3.0_`uname -s`_`uname -m`.tar.gz
+tar -xzvf MoreFind_1.3.0_`uname -s`_`uname -m`.tar.gz
 sudo mv ./MoreFind /usr/bin/MoreFind && chmod +x /usr/bin/MoreFind
 ```
 
@@ -48,6 +48,7 @@ Flags:
   -i, --ip                                                       search ip from stdin or file(搜索IP)
   -l, --len string                                               search specify the length of string, "-l 35" == "-l 0-35" (输出指定长度的行)
   -o, --output string                                            output the result to specified file(指定输出文件)
+      --port                                                     only filter out domain:port (保留域名和端口)
       --root                                                     only output the rootDomain when searching domain(只显示主域名)
   -s, --show                                                     show the length of each line and summaries(输出统计信息)
   -u, --url                                                      search url from stdin or file(搜索URL)
@@ -139,6 +140,10 @@ MoreFind -u -d -i -o result.txt
 echo -e 'baidu.com ccccxxxx 1.com'|MoreFind -d |MoreFind -l 5  
 ```
 
+8)解析CIDR生成指定ip列表
+```azure
+MoreFind -c "192.168.0.1/24"
+```
 
 
 ## TODO
@@ -151,6 +156,7 @@ echo -e 'baidu.com ccccxxxx 1.com'|MoreFind -d |MoreFind -l 5
 - [x] 读取文件流，输出统计信息，显示每行长度
 - [x] 可指定每行长度筛选出符合条件的字符串
 - [x] 增加命令行中文版本，防止自己的蹩脚英语影响使用
+- [x] 支持生成解析CIDR从而生成指定ip列表
 - [ ] 支持命令行控制显示中文/英文的帮助提示
 - [ ] 排除内网IP功能，增加支持对回环本地IP进行过滤
 - [ ] 重新设计代码结构，并完善脚本异常处理部分
