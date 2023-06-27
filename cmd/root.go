@@ -392,7 +392,7 @@ func init() {
 	// help me a lot, so log it in the code， google dork: "flag needs an argument: cobra"
 	// 感谢 https://stackoverflow.com/questions/70182858/how-to-create-flag-with-or-without-argument-in-golang-using-cobra 提供了如何解决--filter 默认参数的问题
 	rootCmd.PersistentFlags().Lookup("filter").NoOptDefVal = "js,css,json,png,jpg,html,xml,zip,rar"
-	rootCmd.PersistentFlags().StringVar(&myCidr, "cidr", "", "输出指定CIDR范围内的所有IP")
+	rootCmd.PersistentFlags().StringVarP(&myCidr, "cidr", "c", "", "输出指定CIDR范围内的所有IP")
 	rootCmd.PersistentFlags().StringVarP(&myLimitLen, "len", "l", "", "search specify the length of string, \"-l 35\" == \"-l 0-35\" (输出指定长度的行)")
 	rootCmd.PersistentFlags().BoolVarP(&myShow, "show", "s", false, "show the length of each line and summaries(输出统计信息)")
 }
