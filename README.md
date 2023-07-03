@@ -142,7 +142,8 @@ echo -e 'baidu.com ccccxxxx 1.com'|MoreFind -d |MoreFind -l 5
 
 8)解析CIDR生成指定ip列表
 ```azure
-MoreFind -c "192.168.0.1/24"
+MoreFind -c="192.168.0.1/24"
+echo -e "192.168.4.1/24\n192.168.1.1/24"|./MoreFind --cidr
 ```
 
 
