@@ -40,22 +40,21 @@ Available Commands:
   version     Print the semantic version number of MoreFind
 
 Flags:
-  -d, --domain                                                   search domain from stdin or file(搜索域名)
-      --exclude                                                  exclude internal/private segment of ip when searching ip(排除内网IP)
   -f, --file string                                              search the info in specified file(指定输入文件)
-      --filter string[="js,css,json,png,jpg,html,xml,zip,rar"]   filter url with some useless ext(排除指定后缀的URL)
-  -h, --help                                                     help for morefind
-  -i, --ip                                                       search ip from stdin or file(搜索IP)
-  -l, --len string                                               search specify the length of string, "-l 35" == "-l 0-35" (输出指定长度的行)
   -o, --output string                                            output the result to specified file(指定输出文件)
-      --port                                                     only filter out domain:port (保留域名和端口)
+  -i, --ip                                                       search ip from stdin or file(搜索IP)
+      --exclude                                                  exclude internal/private segment of ip when searching ip(排除内网IP)
+  -d, --domain                                                   search domain from stdin or file(搜索域名)
       --root                                                     only output the rootDomain when searching domain(只显示主域名)
-  -s, --show                                                     show the length of each line and summaries(输出统计信息)
+      --port                                                     only filter out domain:port (保留域名和端口)
   -u, --url                                                      search url from stdin or file(搜索URL)
+      --filter string[="js,css,json,png,jpg,html,xml,zip,rar"]   filter url with some useless ext(排除指定后缀的URL)
+  -c, --cidr string[="__pipe__"]                                 output the specified cidr ip list (输出指定CIDR范围内的所有IP)
+  -l, --len string                                               search specify the length of string, "-l 35" == "-l 0-35" (输出指定长度的行)
+  -s, --show                                                     show the length of each line and summaries(输出统计信息)
+  -h, --help                                                     help for morefind
 
 Use "morefind [command] --help" for more information about a command.
-
-
 ```
 
 ----
