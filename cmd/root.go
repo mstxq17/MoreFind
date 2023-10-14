@@ -16,6 +16,8 @@ import (
 	"strings"
 )
 
+var logger *log.Logger
+
 func isIPAddr(domain string) bool {
 	ipaddr := net.ParseIP(domain)
 	return ipaddr != nil
@@ -49,7 +51,8 @@ func searchDomain(line string, rootDomain bool) (string, string) {
 	u, err := url.Parse(line)
 	if err != nil {
 		// 直接抛出错误
-		log.Fatal(err)
+		logger.Println(err)
+		return "", ""
 	}
 	domain := u.Hostname()
 	port := u.Port()
@@ -100,7 +103,7 @@ func filterLen(lenRange string) (int, int) {
 		maxLength, _ := strconv.Atoi(lenRange)
 		return 0, maxLength
 	} else {
-		log.Fatal("len Range Invalid, format should be 'min-max', ex 0-100")
+		logger.Fatal("len Range Invalid, format should be 'min-max', ex 0-100")
 		return 0, 0
 	}
 }
@@ -138,7 +141,7 @@ func fileExt(_url string) string {
 	if err != nil {
 		// ignore the exception for preventing from blocking next line
 		// 忽略异常防止阻塞下一行的处理
-		//log.Fatal(err)
+		//logger.Fatal(err)
 	}
 	part := strings.Split(u.Path, "/")
 	fileName := part[len(part)-1]
@@ -172,6 +175,197 @@ func genIP(cidr string) {
 	}
 }
 
+func runCommand(cmd *cobra.Command, args []string) {
+	var _file *os.File
+	if file != "" {
+		var err error
+		_file, err = os.Open(file)
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		_file = os.Stdin
+	}
+	r := bufio.NewReader(_file)
+	// todo: current structure may be chaotic, should abstract the handle process
+	// if show flag be selected，deal with it first
+	if myCidr != "" && myCidr != "__pipe__" {
+		genIP(myCidr)
+		return
+	} else if myCidr == "__pipe__" {
+		for {
+			line, err := r.ReadString('\n')
+			line = strings.TrimSpace(line)
+			if err == io.EOF && len(line) == 0 {
+				break
+			}
+			// 单行的情况会报错
+			if err != nil && err != io.EOF {
+				break
+			}
+			genIP(line)
+		}
+		return
+	}
+	if myUrl == false && myDomain == false && myIp == false {
+		if myShow == true {
+			count := 0
+			maxLength := 0
+			minLength := 0
+			first := true
+			for {
+				line, err := r.ReadString('\n')
+				if err == io.EOF && len(line) == 0 {
+					break
+				}
+				// 单行的情况会报错
+				if err != nil && err != io.EOF {
+					break
+				}
+				lineLength := strconv.Itoa(len(line))
+				if len(line) > maxLength {
+					maxLength = len(line)
+				}
+				if len(line) > 0 && first == true {
+					minLength = len(line)
+					first = false
+				}
+				if len(line) < minLength && first == false {
+					minLength = len(line)
+				}
+				count++
+				fmt.Printf("%-5d%-7s\t%s", count, " Len:"+lineLength, line)
+			}
+			fmt.Println("\n==================================================")
+			fmt.Printf("CountLine: %d MaxLength: %d, MinLength: %d\n", count, maxLength, minLength)
+			return
+		}
+		if myLimitLen != "" {
+			min, max := filterLen(myLimitLen)
+			for {
+				line, err := r.ReadString('\n')
+				line = strings.TrimSpace(line)
+				if err == io.EOF && len(line) == 0 {
+					break
+				}
+				// 单行的情况会报错
+				if err != nil && err != io.EOF {
+					break
+				}
+				if min <= len(line) && len(line) <= max {
+					fmt.Println(line)
+				}
+			}
+			return
+		}
+	}
+	if myUrl == false && myDomain == false && myIp == false {
+		myUrl = true
+	}
+	var urlList []string
+	var domainList []string
+	var ipList []string
+	// remove duplicate url
+	found := make(map[string]bool)
+	for {
+		line, err := r.ReadString('\n')
+		if err == io.EOF && len(line) == 0 {
+			break
+		}
+		// 单行的情况会报错
+		if err != nil && err != io.EOF {
+			break
+		}
+		line = strings.TrimSpace(line)
+		if myUrl == true || myDomain == true {
+			searchUrl := searchUrl(line)
+			for _, _url := range searchUrl {
+				_url = strings.TrimSpace(_url)
+				if myUrl == true {
+					if output != "" {
+						urlList = append(urlList, _url)
+					}
+					// remove repeated string
+					if _, ok := found[_url]; !ok {
+						if myUrlFilter != "" {
+							if !filterExt(_url, myUrlFilter) {
+								fmt.Println(_url)
+								found[_url] = true
+							}
+						} else {
+							fmt.Println(_url)
+							found[_url] = true
+						}
+					}
+				}
+				if myDomain == true {
+					port, _domain := searchDomain(_url, myRootDomain)
+					if _domain == "" || isIPAddr(_domain) {
+						continue
+					}
+					if myDomainPort {
+						if port != "" {
+							_domain = _domain + ":" + port
+						}
+					}
+					if output != "" {
+						domainList = append(domainList, _domain)
+					}
+					// remove repeated string
+					if _, ok := found[_domain]; !ok {
+						fmt.Println(_domain)
+						found[_domain] = true
+					}
+				}
+			}
+		}
+		if myIp == true {
+			searchIp := searchIp(line)
+			for _, _ip := range searchIp {
+				if output != "" {
+					ipList = append(ipList, _ip)
+				}
+				// remove repeated string
+				if _, ok := found[_ip]; !ok {
+					if myPrivateIp == true {
+						if isPrivateIP(_ip) == false {
+							fmt.Println(_ip)
+							found[_ip] = true
+						}
+					} else {
+						fmt.Println(_ip)
+						found[_ip] = true
+					}
+				}
+			}
+		}
+	}
+	if output != "" {
+		_output, err := os.Create(output)
+		if err != nil {
+			logger.Fatal(err)
+		}
+		defer func(_output *os.File) {
+			err := _output.Close()
+			if err != nil {
+				logger.Fatal(err)
+			}
+		}(_output)
+		writer := bufio.NewWriter(_output)
+		for key := range found {
+			_, err := writer.WriteString(key + "\n")
+			if err != nil {
+				return
+			}
+		}
+		err = writer.Flush()
+		if err != nil {
+			logger.Fatal(err)
+			return
+		}
+	}
+}
+
 var (
 	file         string
 	output       string
@@ -189,196 +383,7 @@ var (
 		Use:   "morefind",
 		Short: "MoreFind is a very fast script for searching URL、Domain and Ip from specified stream",
 		Long:  "",
-		Run: func(cmd *cobra.Command, args []string) {
-			var _file *os.File
-			if file != "" {
-				var err error
-				_file, err = os.Open(file)
-				if err != nil {
-					panic(err)
-				}
-			} else {
-				_file = os.Stdin
-			}
-			r := bufio.NewReader(_file)
-			// todo: current structure may be chaotic, should abstract the handle process
-			// if show flag be selected，deal with it first
-			if myCidr != "" && myCidr != "__pipe__" {
-				genIP(myCidr)
-				return
-			} else if myCidr == "__pipe__" {
-				for {
-					line, err := r.ReadString('\n')
-					line = strings.TrimSpace(line)
-					if err == io.EOF && len(line) == 0 {
-						break
-					}
-					// 单行的情况会报错
-					if err != nil && err != io.EOF {
-						break
-					}
-					genIP(line)
-				}
-				return
-			}
-			if myUrl == false && myDomain == false && myIp == false {
-				if myShow == true {
-					count := 0
-					maxLength := 0
-					minLength := 0
-					first := true
-					for {
-						line, err := r.ReadString('\n')
-						if err == io.EOF && len(line) == 0 {
-							break
-						}
-						// 单行的情况会报错
-						if err != nil && err != io.EOF {
-							break
-						}
-						lineLength := strconv.Itoa(len(line))
-						if len(line) > maxLength {
-							maxLength = len(line)
-						}
-						if len(line) > 0 && first == true {
-							minLength = len(line)
-							first = false
-						}
-						if len(line) < minLength && first == false {
-							minLength = len(line)
-						}
-						count++
-						fmt.Printf("%-5d%-7s\t%s", count, " Len:"+lineLength, line)
-					}
-					fmt.Println("\n==================================================")
-					fmt.Printf("CountLine: %d MaxLength: %d, MinLength: %d\n", count, maxLength, minLength)
-					return
-				}
-				if myLimitLen != "" {
-					min, max := filterLen(myLimitLen)
-					for {
-						line, err := r.ReadString('\n')
-						line = strings.TrimSpace(line)
-						if err == io.EOF && len(line) == 0 {
-							break
-						}
-						// 单行的情况会报错
-						if err != nil && err != io.EOF {
-							break
-						}
-						if min <= len(line) && len(line) <= max {
-							fmt.Println(line)
-						}
-					}
-					return
-				}
-			}
-			if myUrl == false && myDomain == false && myIp == false {
-				myUrl = true
-			}
-			var urlList []string
-			var domainList []string
-			var ipList []string
-			// remove duplicate url
-			found := make(map[string]bool)
-			for {
-				line, err := r.ReadString('\n')
-				if err == io.EOF && len(line) == 0 {
-					break
-				}
-				// 单行的情况会报错
-				if err != nil && err != io.EOF {
-					break
-				}
-				line = strings.TrimSpace(line)
-				if myUrl == true || myDomain == true {
-					searchUrl := searchUrl(line)
-					for _, _url := range searchUrl {
-						_url = strings.TrimSpace(_url)
-						if myUrl == true {
-							if output != "" {
-								urlList = append(urlList, _url)
-							}
-							// remove repeated string
-							if _, ok := found[_url]; !ok {
-								if myUrlFilter != "" {
-									if !filterExt(_url, myUrlFilter) {
-										fmt.Println(_url)
-										found[_url] = true
-									}
-								} else {
-									fmt.Println(_url)
-									found[_url] = true
-								}
-							}
-						}
-						if myDomain == true {
-							port, _domain := searchDomain(_url, myRootDomain)
-							if _domain == "" || isIPAddr(_domain) {
-								continue
-							}
-							if myDomainPort {
-								if port != "" {
-									_domain = _domain + ":" + port
-								}
-							}
-							if output != "" {
-								domainList = append(domainList, _domain)
-							}
-							// remove repeated string
-							if _, ok := found[_domain]; !ok {
-								fmt.Println(_domain)
-								found[_domain] = true
-							}
-						}
-					}
-				}
-				if myIp == true {
-					searchIp := searchIp(line)
-					for _, _ip := range searchIp {
-						if output != "" {
-							ipList = append(ipList, _ip)
-						}
-						// remove repeated string
-						if _, ok := found[_ip]; !ok {
-							if myPrivateIp == true {
-								if isPrivateIP(_ip) == false {
-									fmt.Println(_ip)
-									found[_ip] = true
-								}
-							} else {
-								fmt.Println(_ip)
-								found[_ip] = true
-							}
-						}
-					}
-				}
-			}
-			if output != "" {
-				_output, err := os.Create(output)
-				if err != nil {
-					log.Fatal(err)
-				}
-				defer func(_output *os.File) {
-					err := _output.Close()
-					if err != nil {
-						log.Fatal(err)
-					}
-				}(_output)
-				writer := bufio.NewWriter(_output)
-				for key := range found {
-					_, err := writer.WriteString(key + "\n")
-					if err != nil {
-						return
-					}
-				}
-				err = writer.Flush()
-				if err != nil {
-					log.Fatal(err)
-					return
-				}
-			}
-		},
+		Run:   runCommand,
 	}
 )
 
@@ -393,6 +398,9 @@ func Execute() {
 }
 
 func init() {
+	// Set flag for global logger in init func
+	// 在 init 函数中创建全局 logger 并设置标志
+	logger = log.New(os.Stderr, "", log.Ldate|log.Ltime|log.Lshortfile)
 	rootCmd.PersistentFlags().StringVarP(&file, "file", "f", "", "search the info in specified file(指定输入文件)")
 	rootCmd.PersistentFlags().StringVarP(&output, "output", "o", "", "output the result to specified file(指定输出文件)")
 	rootCmd.PersistentFlags().BoolVarP(&myIp, "ip", "i", false, "search ip from stdin or file(搜索IP)")
