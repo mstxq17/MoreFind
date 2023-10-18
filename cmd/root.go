@@ -18,13 +18,23 @@ import (
 
 var logger *log.Logger
 
+// IPAndPort define custom struct
+// 自定义一个结构体
+type IPAndPort struct {
+	IP   string
+	Port string
+}
+
 func isIPAddr(domain string) bool {
 	ipaddr := net.ParseIP(domain)
 	return ipaddr != nil
 }
 
 func isPrivateIP(line string) bool {
-	var iIRegex = regexp.MustCompile("^(10.\\d{1,3}.\\d{1,3}.((0/([89]|1[0-9]|2\\d|3[012]))|(\\d{1,3})))|(172.(1[6789]|2\\d|3[01]).\\d{1,3}.\\d{1,3}(/(1[6789]|2\\d|3[012]))?)|(192.168.\\d{1,3}.\\d{1,3}(/(1[6789]|2\\d|3[012]))?)$")
+	// update regex pattern to match loopback and private ip
+	// 更新正则表达式模式以匹配环回和私有IP
+	//var iIRegex = regexp.MustCompile("^(10.\\d{1,3}.\\d{1,3}.((0/([89]|1[0-9]|2\\d|3[012]))|(\\d{1,3})))|(172.(1[6789]|2\\d|3[01]).\\d{1,3}.\\d{1,3}(/(1[6789]|2\\d|3[012]))?)|(192.168.\\d{1,3}.\\d{1,3}(/(1[6789]|2\\d|3[012]))?)$")
+	var iIRegex = regexp.MustCompile("^(127\\.0\\.0\\.1|10\\.\\d{1,3}\\.\\d{1,3}\\.((0/([89]|1[0-9]|2\\d|3[012]))|(\\d{1,3}))|172\\.(1[6789]|2\\d|3[01])\\.\\d{1,3}\\.\\d{1,3}(/(1[6789]|2\\d|3[012]))?|192\\.168\\.\\d{1,3}\\.\\d{1,3}(/(1[6789]|2\\d|3[012]))?)$")
 	return iIRegex.MatchString(line)
 }
 
@@ -37,6 +47,7 @@ func searchUrl(line string) []string {
 func searchDomain(line string, rootDomain bool) (string, string) {
 	/**
 	匹配域名并输出
+	match domain format and output
 	*/
 	line = strings.TrimSpace(line)
 	if strings.HasPrefix(line, "http") == false {
@@ -85,10 +96,25 @@ func searchRootDomain(domain string) string {
 	return eTLD
 }
 
-func searchIp(line string) []string {
+func searchIp(line string) []IPAndPort {
 	// only support ipv4, ipv6 will be supported in future
-	var ipRegex = regexp.MustCompile("((?:(?:25[0-5]|2[0-4]\\d|((1\\d{2})|([1-9]?\\d)))\\.){3}(?:25[0-5]|2[0-4]\\d|((1\\d{2})|([1-9]?\\d))))")
-	return ipRegex.FindAllString(line, -1)
+	//var ipRegex = regexp.MustCompile("((?:(?:25[0-5]|2[0-4]\\d|((1\\d{2})|([1-9]?\\d)))\\.){3}(?:25[0-5]|2[0-4]\\d|((1\\d{2})|([1-9]?\\d))))")
+	ipPortRegex := regexp.MustCompile(`((?:(?:25[0-5]|2[0-4]\d|((1\d{2})|([1-9]?\d)))\.){3}(?:25[0-5]|2[0-4]\d|((1\d{2})|([1-9]?\d))))(:\d{1,5})?`)
+	matches := ipPortRegex.FindAllStringSubmatch(line, -1)
+	// store entries of result
+	// 保存多个结果
+	var result []IPAndPort
+	for _, match := range matches {
+		ip := match[1]
+		port := match[8]
+		if port != "" {
+			port = port[1:]
+		}
+		entry := IPAndPort{IP: ip, Port: port}
+		result = append(result, entry)
+	}
+	return result
+	//return ipRegex.FindAllString(line, -1)
 }
 
 func filterLen(lenRange string) (int, int) {
@@ -199,6 +225,7 @@ func runCommand(cmd *cobra.Command, args []string) {
 			if err == io.EOF && len(line) == 0 {
 				break
 			}
+			// single line cause error
 			// 单行的情况会报错
 			if err != nil && err != io.EOF {
 				break
@@ -218,6 +245,7 @@ func runCommand(cmd *cobra.Command, args []string) {
 				if err == io.EOF && len(line) == 0 {
 					break
 				}
+				// single line cause error
 				// 单行的情况会报错
 				if err != nil && err != io.EOF {
 					break
@@ -248,6 +276,7 @@ func runCommand(cmd *cobra.Command, args []string) {
 				if err == io.EOF && len(line) == 0 {
 					break
 				}
+				// single line cause error
 				// 单行的情况会报错
 				if err != nil && err != io.EOF {
 					break
@@ -272,6 +301,7 @@ func runCommand(cmd *cobra.Command, args []string) {
 		if err == io.EOF && len(line) == 0 {
 			break
 		}
+		// single line cause error
 		// 单行的情况会报错
 		if err != nil && err != io.EOF {
 			break
@@ -303,7 +333,7 @@ func runCommand(cmd *cobra.Command, args []string) {
 					if _domain == "" || isIPAddr(_domain) {
 						continue
 					}
-					if myDomainPort {
+					if myWithPort {
 						if port != "" {
 							_domain = _domain + ":" + port
 						}
@@ -321,20 +351,25 @@ func runCommand(cmd *cobra.Command, args []string) {
 		}
 		if myIp == true {
 			searchIp := searchIp(line)
-			for _, _ip := range searchIp {
+			for _, ipps := range searchIp {
+				ipWithPort := ipps.IP
+				if myWithPort && ipps.Port != "" {
+					ipWithPort = ipps.IP + ":" + ipps.Port
+				}
 				if output != "" {
-					ipList = append(ipList, _ip)
+					ipList = append(ipList, ipWithPort)
 				}
 				// remove repeated string
-				if _, ok := found[_ip]; !ok {
+				// 删除重复的行
+				if _, ok := found[ipWithPort]; !ok {
 					if myPrivateIp == true {
-						if isPrivateIP(_ip) == false {
-							fmt.Println(_ip)
-							found[_ip] = true
+						if isPrivateIP(ipWithPort) == false {
+							fmt.Println(ipWithPort)
+							found[ipWithPort] = true
 						}
 					} else {
-						fmt.Println(_ip)
-						found[_ip] = true
+						fmt.Println(ipWithPort)
+						found[ipWithPort] = true
 					}
 				}
 			}
@@ -372,7 +407,7 @@ var (
 	myUrl        bool
 	myDomain     bool
 	myRootDomain bool
-	myDomainPort bool
+	myWithPort   bool
 	myIp         bool
 	myPrivateIp  bool
 	myLimitLen   string
@@ -407,7 +442,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&myPrivateIp, "exclude", "", false, "exclude internal/private segment of ip when searching ip(排除内网IP)")
 	rootCmd.PersistentFlags().BoolVarP(&myDomain, "domain", "d", false, "search domain from stdin or file(搜索域名)")
 	rootCmd.PersistentFlags().BoolVarP(&myRootDomain, "root", "", false, "only output the rootDomain when searching domain(只显示主域名)")
-	rootCmd.PersistentFlags().BoolVarP(&myDomainPort, "port", "", false, "only filter out domain:port (保留域名和端口)")
+	rootCmd.PersistentFlags().BoolVarP(&myWithPort, "port", "", false, "only filter out domain:port (保留域名和端口)")
 	rootCmd.PersistentFlags().BoolVarP(&myUrl, "url", "u", false, "search url from stdin or file(搜索URL)")
 	rootCmd.PersistentFlags().StringVarP(&myUrlFilter, "filter", "", "", "filter url with some useless ext(排除指定后缀的URL)")
 	// this trick occurs from https://stackoverflow.com/questions/70182858/how-to-create-flag-with-or-without-argument-in-golang-using-cobra
