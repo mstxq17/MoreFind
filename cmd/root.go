@@ -3,6 +3,7 @@ package cmd
 import (
 	"bufio"
 	"fmt"
+	"github.com/mstxq17/MoreFind/core"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/publicsuffix"
 	"io"
@@ -294,8 +295,23 @@ func runCommand(cmd *cobra.Command, args []string) {
 	var urlList []string
 	var domainList []string
 	var ipList []string
-	// remove duplicate url
+	// remove duplicated url
+	// 去除重复的url
 	found := make(map[string]bool)
+	newLine := core.NewLine()
+	// define stream myself
+	// 定义自己的输出流
+	var outputBuffer *core.MyBuffer
+	var customStringHandler core.CustomStringHandler
+	if myRule != "" {
+		outputBuffer = core.NewMyBuffer(true)
+		customStringHandler.Strategy = 1
+		customStringHandler.Rule = myRule
+		customStringHandler.Flag = myFlag
+	} else {
+		outputBuffer = core.NewMyBuffer(false)
+		customStringHandler.Strategy = 0
+	}
 	for {
 		line, err := r.ReadString('\n')
 		if err == io.EOF && len(line) == 0 {
@@ -319,11 +335,13 @@ func runCommand(cmd *cobra.Command, args []string) {
 					if _, ok := found[_url]; !ok {
 						if myUrlFilter != "" {
 							if !filterExt(_url, myUrlFilter) {
-								fmt.Println(_url)
+								outputBuffer.WriteString(_url, &customStringHandler, newLine)
+								//fmt.Println(_url)
 								found[_url] = true
 							}
 						} else {
-							fmt.Println(_url)
+							outputBuffer.WriteString(_url, &customStringHandler, newLine)
+							//fmt.Println(_url)
 							found[_url] = true
 						}
 					}
@@ -343,7 +361,8 @@ func runCommand(cmd *cobra.Command, args []string) {
 					}
 					// remove repeated string
 					if _, ok := found[_domain]; !ok {
-						fmt.Println(_domain)
+						outputBuffer.WriteString(_domain, &customStringHandler, newLine)
+						//fmt.Println(_domain)
 						found[_domain] = true
 					}
 				}
@@ -364,16 +383,20 @@ func runCommand(cmd *cobra.Command, args []string) {
 				if _, ok := found[ipWithPort]; !ok {
 					if myPrivateIp == true {
 						if isPrivateIP(ipWithPort) == false {
-							fmt.Println(ipWithPort)
+							//fmt.Println(ipWithPort)
+							outputBuffer.WriteString(ipWithPort, &customStringHandler, newLine)
 							found[ipWithPort] = true
 						}
 					} else {
-						fmt.Println(ipWithPort)
+						outputBuffer.WriteString(ipWithPort, &customStringHandler, newLine)
+						//fmt.Println(ipWithPort)
 						found[ipWithPort] = true
 					}
 				}
 			}
 		}
+		fmt.Print(outputBuffer.String())
+		outputBuffer.Reset()
 	}
 	if output != "" {
 		_output, err := os.Create(output)
@@ -414,6 +437,8 @@ var (
 	myShow       bool
 	myUrlFilter  string
 	myCidr       string
+	myRule       string
+	myFlag       string
 	rootCmd      = &cobra.Command{
 		Use:   "morefind",
 		Short: "MoreFind is a very fast script for searching URL、Domain and Ip from specified stream",
@@ -442,7 +467,9 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&myPrivateIp, "exclude", "", false, "exclude internal/private segment of ip when searching ip(排除内网IP)")
 	rootCmd.PersistentFlags().BoolVarP(&myDomain, "domain", "d", false, "search domain from stdin or file(搜索域名)")
 	rootCmd.PersistentFlags().BoolVarP(&myRootDomain, "root", "", false, "only output the rootDomain when searching domain(只显示主域名)")
-	rootCmd.PersistentFlags().BoolVarP(&myWithPort, "port", "", false, "only filter out domain:port (保留域名和端口)")
+	rootCmd.PersistentFlags().BoolVarP(&myWithPort, "port", "p", false, "only filter out domain&ip:port (保留域名&ip和端口)")
+	rootCmd.PersistentFlags().StringVarP(&myRule, "rule", "r", "", "replacement rule (替换规则 https://{}/)")
+	rootCmd.PersistentFlags().StringVarP(&myFlag, "flag", "", "{}", "replacement identification (替换标志位)")
 	rootCmd.PersistentFlags().BoolVarP(&myUrl, "url", "u", false, "search url from stdin or file(搜索URL)")
 	rootCmd.PersistentFlags().StringVarP(&myUrlFilter, "filter", "", "", "filter url with some useless ext(排除指定后缀的URL)")
 	// this trick occurs from https://stackoverflow.com/questions/70182858/how-to-create-flag-with-or-without-argument-in-golang-using-cobra
