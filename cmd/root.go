@@ -337,11 +337,13 @@ func runCommand(cmd *cobra.Command, args []string) {
 							if !filterExt(_url, myUrlFilter) {
 								outputBuffer.WriteString(_url, &customStringHandler, newLine)
 								//fmt.Println(_url)
+								_url = outputBuffer.TempString
 								found[_url] = true
 							}
 						} else {
 							outputBuffer.WriteString(_url, &customStringHandler, newLine)
 							//fmt.Println(_url)
+							_url = outputBuffer.TempString
 							found[_url] = true
 						}
 					}
@@ -363,6 +365,7 @@ func runCommand(cmd *cobra.Command, args []string) {
 					if _, ok := found[_domain]; !ok {
 						outputBuffer.WriteString(_domain, &customStringHandler, newLine)
 						//fmt.Println(_domain)
+						_domain = outputBuffer.TempString
 						found[_domain] = true
 					}
 				}
@@ -385,11 +388,13 @@ func runCommand(cmd *cobra.Command, args []string) {
 						if isPrivateIP(ipWithPort) == false {
 							//fmt.Println(ipWithPort)
 							outputBuffer.WriteString(ipWithPort, &customStringHandler, newLine)
+							ipWithPort = outputBuffer.TempString
 							found[ipWithPort] = true
 						}
 					} else {
 						outputBuffer.WriteString(ipWithPort, &customStringHandler, newLine)
 						//fmt.Println(ipWithPort)
+						ipWithPort = outputBuffer.TempString
 						found[ipWithPort] = true
 					}
 				}
@@ -411,7 +416,7 @@ func runCommand(cmd *cobra.Command, args []string) {
 		}(_output)
 		writer := bufio.NewWriter(_output)
 		for key := range found {
-			_, err := writer.WriteString(key + "\n")
+			_, err := writer.WriteString(key)
 			if err != nil {
 				return
 			}
@@ -468,7 +473,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&myDomain, "domain", "d", false, "search domain from stdin or file(搜索域名)")
 	rootCmd.PersistentFlags().BoolVarP(&myRootDomain, "root", "", false, "only output the rootDomain when searching domain(只显示主域名)")
 	rootCmd.PersistentFlags().BoolVarP(&myWithPort, "port", "p", false, "only filter out domain&ip:port (保留域名&ip和端口)")
-	rootCmd.PersistentFlags().StringVarP(&myRule, "rule", "r", "", "replacement rule (替换规则 https://{}/)")
+	rootCmd.PersistentFlags().StringVarP(&myRule, "rule", "r", "", "use custom replacement rule (自定义输出替换规则 https://{}/)")
 	rootCmd.PersistentFlags().StringVarP(&myFlag, "flag", "", "{}", "replacement identification (替换标志位)")
 	rootCmd.PersistentFlags().BoolVarP(&myUrl, "url", "u", false, "search url from stdin or file(搜索URL)")
 	rootCmd.PersistentFlags().StringVarP(&myUrlFilter, "filter", "", "", "filter url with some useless ext(排除指定后缀的URL)")

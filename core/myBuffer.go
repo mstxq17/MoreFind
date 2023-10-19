@@ -9,8 +9,9 @@ type stringHandler interface {
 }
 
 type MyBuffer struct {
-	buffer   *bytes.Buffer
-	IsFilter bool
+	buffer     *bytes.Buffer
+	TempString string
+	IsFilter   bool
 }
 
 type CustomStringHandler struct {
@@ -39,8 +40,10 @@ func (_bytes *MyBuffer) WriteString(s string, handler stringHandler, newLine str
 	// change the action of WriteString method
 	// 修改 WriteString 方法的行为
 	if _bytes.IsFilter {
-		return _bytes.buffer.WriteString(handler.HandleString(s) + newLine)
+		_bytes.TempString = handler.HandleString(s) + newLine
+		return _bytes.buffer.WriteString(_bytes.TempString)
 	}
+	_bytes.TempString = s + newLine
 	return _bytes.buffer.WriteString(s + newLine)
 }
 
