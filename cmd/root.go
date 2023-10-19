@@ -193,12 +193,45 @@ func inc(ip net.IP) {
 }
 
 func genIP(cidr string) {
-	ip, ipnet, err := net.ParseCIDR(cidr)
-	if err != nil {
-		fmt.Println("无法解析CIDR地址:", err)
+	// fix parse error because of \n in window env
+	// 修复 window 因为多了换行符导致的错误
+	cidr = strings.TrimSpace(cidr)
+	if strings.Contains(cidr, "/") {
+		ip, ipnet, err := net.ParseCIDR(cidr)
+		if err != nil {
+			logger.Println("无法解析CIDR地址:", err)
+		} else {
+			for ip := ip.Mask(ipnet.Mask); ipnet.Contains(ip); inc(ip) {
+				fmt.Println(ip)
+			}
+		}
 	}
-	for ip := ip.Mask(ipnet.Mask); ipnet.Contains(ip); inc(ip) {
-		fmt.Println(ip)
+	if strings.Contains(cidr, "-") {
+		var ipRange []string
+		for _, ipstr := range strings.Split(cidr, "-") {
+			ipRange = append(ipRange, strings.TrimSpace(ipstr))
+		}
+		if len(ipRange) != 2 {
+			logger.Println("无法解析给定的IP段: " + cidr)
+			return
+		}
+
+		startIPStr := ipRange[0]
+		endIPStr := ipRange[1]
+		errStart := net.ParseIP(startIPStr)
+		errEnd := net.ParseIP(endIPStr)
+		if errStart == nil || errEnd == nil {
+			logger.Println("无法解析给定的IP段: " + cidr)
+			return
+		}
+		ipList := core.IPRange(startIPStr, endIPStr)
+		for _, ip := range ipList {
+			fmt.Println(ip)
+		}
+	}
+	if !strings.Contains(cidr, "/") && !strings.Contains(cidr, "-") {
+		cidr = cidr + "/24"
+		genIP(cidr)
 	}
 }
 

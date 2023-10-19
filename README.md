@@ -19,7 +19,7 @@ go install  github.com/mstxq17/MoreFind@latest
 ```
 方式二: 直接安装二进制文件
 ```bash
-wget --no-check-certificate  https://ghproxy.com/https://github.com/mstxq17/MoreFind/releases/download/v1.4.2/MoreFind_`uname -s`_`uname -m`.tar.gz
+wget --no-check-certificate  https://ghproxy.com/https://github.com/mstxq17/MoreFind/releases/download/v1.4.3/MoreFind_`uname -s`_`uname -m`.tar.gz
 tar -xzvf MoreFind_`uname -s`_`uname -m`.tar.gz
 sudo mv ./MoreFind /usr/bin/MoreFind && chmod +x /usr/bin/MoreFind
 ```
@@ -136,6 +136,7 @@ MoreFind -l 0-35
 
 ```bash
 MoreFind -c="192.168.0.1/24"
+MoreFind -c="192.168.0.1-192.168.2.254"
 echo -e "192.168.4.1/24\n192.168.1.1/24"|./MoreFind --cidr
 ```
 
