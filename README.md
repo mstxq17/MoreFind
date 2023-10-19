@@ -3,6 +3,8 @@
 
 一款用于快速导出URL、Domain和IP的**魔法**小工具
 
+![image-20231019140857250](README.assets/image-20231019140857250.png)
+
 ##  欢迎使用
 
 本工具开发崇尚第一原则： 小、简、美  
@@ -17,7 +19,7 @@ go install  github.com/mstxq17/MoreFind@latest
 ```
 方式二: 直接安装二进制文件
 ```bash
-wget --no-check-certificate  https://ghproxy.com/https://github.com/mstxq17/MoreFind/releases/download/v1.4.1/MoreFind_`uname -s`_`uname -m`.tar.gz
+wget --no-check-certificate  https://ghproxy.com/https://github.com/mstxq17/MoreFind/releases/download/v1.4.2/MoreFind_`uname -s`_`uname -m`.tar.gz
 tar -xzvf MoreFind_`uname -s`_`uname -m`.tar.gz
 sudo mv ./MoreFind /usr/bin/MoreFind && chmod +x /usr/bin/MoreFind
 ```
@@ -130,7 +132,7 @@ MoreFind -l 0-35
 
 
 
-6) 解析CIDR生成指定ip列表
+6)解析CIDR生成指定ip列表
 
 ```bash
 MoreFind -c="192.168.0.1/24"
@@ -139,7 +141,7 @@ echo -e "192.168.4.1/24\n192.168.1.1/24"|./MoreFind --cidr
 
 
 
-7) 支持自定义输出规则
+7)支持自定义输出规则
 
 ```bash
 # 最终会将结果替换到 {} 
