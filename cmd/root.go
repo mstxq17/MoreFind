@@ -298,6 +298,7 @@ func runCommand(cmd *cobra.Command, args []string) {
 	// remove duplicated url
 	// 去除重复的url
 	found := make(map[string]bool)
+	foundWrite := make(map[string]bool)
 	newLine := core.NewLine()
 	// define stream myself
 	// 定义自己的输出流
@@ -337,14 +338,14 @@ func runCommand(cmd *cobra.Command, args []string) {
 							if !filterExt(_url, myUrlFilter) {
 								outputBuffer.WriteString(_url, &customStringHandler, newLine)
 								//fmt.Println(_url)
-								_url = outputBuffer.TempString
 								found[_url] = true
+								foundWrite[outputBuffer.TempString] = true
 							}
 						} else {
 							outputBuffer.WriteString(_url, &customStringHandler, newLine)
 							//fmt.Println(_url)
-							_url = outputBuffer.TempString
 							found[_url] = true
+							foundWrite[outputBuffer.TempString] = true
 						}
 					}
 				}
@@ -365,8 +366,8 @@ func runCommand(cmd *cobra.Command, args []string) {
 					if _, ok := found[_domain]; !ok {
 						outputBuffer.WriteString(_domain, &customStringHandler, newLine)
 						//fmt.Println(_domain)
-						_domain = outputBuffer.TempString
 						found[_domain] = true
+						foundWrite[outputBuffer.TempString] = true
 					}
 				}
 			}
@@ -388,13 +389,13 @@ func runCommand(cmd *cobra.Command, args []string) {
 						if isPrivateIP(ipWithPort) == false {
 							//fmt.Println(ipWithPort)
 							outputBuffer.WriteString(ipWithPort, &customStringHandler, newLine)
-							ipWithPort = outputBuffer.TempString
+							foundWrite[outputBuffer.TempString] = true
 							found[ipWithPort] = true
 						}
 					} else {
 						outputBuffer.WriteString(ipWithPort, &customStringHandler, newLine)
 						//fmt.Println(ipWithPort)
-						ipWithPort = outputBuffer.TempString
+						foundWrite[outputBuffer.TempString] = true
 						found[ipWithPort] = true
 					}
 				}
@@ -415,7 +416,8 @@ func runCommand(cmd *cobra.Command, args []string) {
 			}
 		}(_output)
 		writer := bufio.NewWriter(_output)
-		for key := range found {
+		//for key := range found {
+		for key := range foundWrite {
 			_, err := writer.WriteString(key)
 			if err != nil {
 				return
