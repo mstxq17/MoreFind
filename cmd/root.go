@@ -305,7 +305,7 @@ func runCommand(cmd *cobra.Command, args []string) {
 					minLength = len(line)
 				}
 				count++
-				fmt.Printf("%-5d%-7s\t%s", count, " Len:"+lineLength, line)
+				fmt.Printf("%-5d%-7s\t%s%s", count, " Len:"+lineLength, line, core.NewLine())
 			}
 			fmt.Println("\n==================================================")
 			fmt.Printf("CountLine: %d MaxLength: %d, MinLength: %d\n", count, maxLength, minLength)
