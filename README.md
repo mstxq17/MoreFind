@@ -19,7 +19,7 @@ go install  github.com/mstxq17/MoreFind@latest
 ```
 方式二: 直接安装二进制文件
 ```bash
-wget --no-check-certificate  https://ghproxy.com/https://github.com/mstxq17/MoreFind/releases/download/v1.4.3/MoreFind_`uname -s`_`uname -m`.tar.gz
+wget --no-check-certificate  https://ghproxy.com/https://github.com/mstxq17/MoreFind/releases/download/v1.4.4/MoreFind_`uname -s`_`uname -m`.tar.gz
 tar -xzvf MoreFind_`uname -s`_`uname -m`.tar.gz
 sudo mv ./MoreFind /usr/bin/MoreFind && chmod +x /usr/bin/MoreFind
 ```
@@ -62,13 +62,14 @@ Flags:
   -d, --domain                                                   search domain from stdin or file(搜索域名)
       --root                                                     only output the rootDomain when searching domain(只显示主域名)
   -p, --port                                                     only filter out domain&ip:port (保留域名&ip和端口)
-  -r, --rule string                                              replacement rule (替换规则 https://{}/)
+  -r, --rule string                                              use custom replacement rule (自定义输出替换规则 https://{}/)
       --flag string                                              replacement identification (替换标志位) (default "{}")
   -u, --url                                                      search url from stdin or file(搜索URL)
       --filter string[="js,css,json,png,jpg,html,xml,zip,rar"]   filter url with some useless ext(排除指定后缀的URL)
   -c, --cidr string[="__pipe__"]                                 output the specified cidr ip list (输出指定CIDR范围内的所有IP)
   -l, --len string                                               search specify the length of string, "-l 35" == "-l 0-35" (输出指定长度的行)
   -s, --show                                                     show the length of each line and summaries(输出统计信息)
+  -m, --metric                                                   output  executing progress metric status when reads big file(输出执行进度条,大文件读取可以用到)
   -h, --help                                                     help for morefind
 
 Use "morefind [command] --help" for more information about a command.
@@ -148,6 +149,17 @@ echo -e "192.168.4.1/24\n192.168.1.1/24"|./MoreFind --cidr
 # 最终会将结果替换到 {} 
 MoreFind -i --exclude -r "http://{}/"  
 ```
+
+
+
+*) 支持输出执行进度，读取大文件的时候让你心里有数 (默认不开启)
+
+```bash
+MoreFind -f 1.txt -m 
+MoreFind -f 1.txt --metric
+```
+
+![image-20231023031640316](README.assets/image-20231023031640316.png)
 
 
 

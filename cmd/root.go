@@ -3,10 +3,10 @@ package cmd
 import (
 	"bufio"
 	"fmt"
+	"github.com/cheggaaa/pb/v3"
 	"github.com/mstxq17/MoreFind/core"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/publicsuffix"
-	"io"
 	"log"
 	"mvdan.cc/xurls/v2"
 	"net"
@@ -243,27 +243,44 @@ func runCommand(cmd *cobra.Command, args []string) {
 		if err != nil {
 			panic(err)
 		}
+		// prevent memory leaking
+		// 防止内存泄漏
+		defer func() {
+			if err = _file.Close(); err != nil {
+				log.Fatal(err)
+			}
+		}()
 	} else {
 		_file = os.Stdin
 	}
-	r := bufio.NewReader(_file)
+	fi, _ := _file.Stat()
+	if fi.Size() == 0 {
+		fmt.Println("No input found, exit ...")
+		return
+	}
+	// define global reader of input
+	// 定义全局输入读取流
+	var scanner *bufio.Scanner
+	if myProgress {
+		bar := pb.Full.Start64(fi.Size())
+		defer func() {
+			bar.Finish()
+		}()
+		reader := bar.NewProxyReader(bufio.NewReader(_file))
+		scanner = bufio.NewScanner(reader)
+	} else {
+		reader := bufio.NewReader(_file)
+		scanner = bufio.NewScanner(reader)
+	}
 	// todo: current structure may be chaotic, should abstract the handle process
 	// if show flag be selected，deal with it first
+	// 如果选择 show 参数，首先处理它
 	if myCidr != "" && myCidr != "__pipe__" {
 		genIP(myCidr)
 		return
 	} else if myCidr == "__pipe__" {
-		for {
-			line, err := r.ReadString('\n')
-			line = strings.TrimSpace(line)
-			if err == io.EOF && len(line) == 0 {
-				break
-			}
-			// single line cause error
-			// 单行的情况会报错
-			if err != nil && err != io.EOF {
-				break
-			}
+		for scanner.Scan() {
+			line := strings.TrimSpace(scanner.Text())
 			genIP(line)
 		}
 		return
@@ -274,16 +291,8 @@ func runCommand(cmd *cobra.Command, args []string) {
 			maxLength := 0
 			minLength := 0
 			first := true
-			for {
-				line, err := r.ReadString('\n')
-				if err == io.EOF && len(line) == 0 {
-					break
-				}
-				// single line cause error
-				// 单行的情况会报错
-				if err != nil && err != io.EOF {
-					break
-				}
+			for scanner.Scan() {
+				line := scanner.Text()
 				lineLength := strconv.Itoa(len(line))
 				if len(line) > maxLength {
 					maxLength = len(line)
@@ -304,17 +313,8 @@ func runCommand(cmd *cobra.Command, args []string) {
 		}
 		if myLimitLen != "" {
 			min, max := filterLen(myLimitLen)
-			for {
-				line, err := r.ReadString('\n')
-				line = strings.TrimSpace(line)
-				if err == io.EOF && len(line) == 0 {
-					break
-				}
-				// single line cause error
-				// 单行的情况会报错
-				if err != nil && err != io.EOF {
-					break
-				}
+			for scanner.Scan() {
+				line := strings.TrimSpace(scanner.Text())
 				if min <= len(line) && len(line) <= max {
 					fmt.Println(line)
 				}
@@ -346,17 +346,8 @@ func runCommand(cmd *cobra.Command, args []string) {
 		outputBuffer = core.NewMyBuffer(false)
 		customStringHandler.Strategy = 0
 	}
-	for {
-		line, err := r.ReadString('\n')
-		if err == io.EOF && len(line) == 0 {
-			break
-		}
-		// single line cause error
-		// 单行的情况会报错
-		if err != nil && err != io.EOF {
-			break
-		}
-		line = strings.TrimSpace(line)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
 		if myUrl == true || myDomain == true {
 			searchUrl := searchUrl(line)
 			for _, _url := range searchUrl {
@@ -479,6 +470,7 @@ var (
 	myCidr       string
 	myRule       string
 	myFlag       string
+	myProgress   bool
 	rootCmd      = &cobra.Command{
 		Use:   "morefind",
 		Short: "MoreFind is a very fast script for searching URL、Domain and Ip from specified stream",
@@ -520,6 +512,7 @@ func init() {
 	rootCmd.PersistentFlags().Lookup("cidr").NoOptDefVal = "__pipe__"
 	rootCmd.PersistentFlags().StringVarP(&myLimitLen, "len", "l", "", "search specify the length of string, \"-l 35\" == \"-l 0-35\" (输出指定长度的行)")
 	rootCmd.PersistentFlags().BoolVarP(&myShow, "show", "s", false, "show the length of each line and summaries(输出统计信息)")
+	rootCmd.PersistentFlags().BoolVarP(&myProgress, "metric", "m", false, "output  executing progress metric status when reads big file(输出执行进度条,大文件读取可以用到)")
 	// Dont sorted flag alphabetically
 	// 禁止排序参数，按代码定义顺序展示
 	rootCmd.PersistentFlags().SortFlags = false
