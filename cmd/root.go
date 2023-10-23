@@ -253,9 +253,11 @@ func runCommand(cmd *cobra.Command, args []string) {
 	} else {
 		_file = os.Stdin
 	}
+	// use features to solve  whether  has input
+	// 利用特性解决程序是否有输入的问题
 	fi, _ := _file.Stat()
-	if fi.Size() == 0 {
-		fmt.Println("No input found, exit ...")
+	if (fi.Mode() & os.ModeCharDevice) != 0 {
+		logger.Println("No input found, exit ...")
 		return
 	}
 	// define global reader of input
