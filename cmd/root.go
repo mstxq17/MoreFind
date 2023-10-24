@@ -258,7 +258,9 @@ func runCommand(cmd *cobra.Command, args []string) {
 	fi, _ := _file.Stat()
 	if (fi.Mode() & os.ModeCharDevice) != 0 {
 		logger.Println("No input found, exit ...")
-		return
+		// optimize exit logic
+		// 优化退出逻辑
+		os.Exit(0)
 	}
 	// define global reader of input
 	// 定义全局输入读取流

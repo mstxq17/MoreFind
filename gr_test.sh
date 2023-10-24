@@ -1,0 +1,1 @@
+goreleaser --skip-publish --snapshot --rm-dist

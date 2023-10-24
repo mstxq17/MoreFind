@@ -8,19 +8,33 @@ before:
 #    - go generate ./...
 builds:
   - env:
-      - CGO_ENABLED=0
+      - CGO_ENABLED=0 
+    binary: '{{ .ProjectName }}'
     goos:
       - linux
       - windows
       - darwin
+      - freebsd
+    goarch: ['amd64','386', 'arm', 'arm64']
+    ignore:
+      - goos: darwin
+        goarch: '386'
+      - goos: windows
+        goarch: arm
+      - goos: windows
+        goarch: arm64
+    flags:
+      - -trimpath
+
 archives:
-  - name_template: >-
-      {{ .ProjectName }}_
-      {{- title .Os }}_
+  - format: zip
+    id: MoreFind
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_
+      {{- .Os }}_
       {{- if eq .Arch "amd64" }}x86_64
       {{- else if eq .Arch "386" }}i386
-      {{- else }}{{ .Arch }}{{ end }}
-      {{- if .Arm }}v{{ .Arm }}{{ end }}
+      {{- else}}{{  .Arch }}{{ end }}
     files:
       - README.md
 

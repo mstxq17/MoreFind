@@ -7,7 +7,7 @@ import (
 
 // VERSION number
 // 版本号
-const VERSION string = "1.4.5"
+const VERSION string = "1.4.6"
 
 func init() {
 	rootCmd.AddCommand(versionCmd)
