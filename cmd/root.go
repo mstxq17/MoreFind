@@ -276,6 +276,10 @@ func runCommand(cmd *cobra.Command, args []string) {
 		reader := bufio.NewReader(_file)
 		scanner = bufio.NewScanner(reader)
 	}
+	buf := make([]byte, 0, 64*1024)
+	// support maximum  512MB buffer every line
+	// 支持最大读取单行 512MB 大小
+	scanner.Buffer(buf, 512*1024*1024)
 	// todo: current structure may be chaotic, should abstract the handle process
 	// if show flag be selected，deal with it first
 	// 如果选择 show 参数，首先处理它
@@ -431,6 +435,10 @@ func runCommand(cmd *cobra.Command, args []string) {
 		}
 		fmt.Print(outputBuffer.String())
 		outputBuffer.Reset()
+	}
+	// maybe exceed maxTokenSize length
+	if err := scanner.Err(); err != nil {
+		logger.Println(err)
 	}
 	if output != "" {
 		_output, err := os.Create(output)
