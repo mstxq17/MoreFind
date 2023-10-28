@@ -25,7 +25,7 @@ builds:
         goarch: arm64
     ldflags:
       - "-s -w"
-#      - -X <package>/common.version={{.Version}}
+#      - -X <package>/vars.version={{.Version}}
 #      - -extldflags="-static" # 跨平台
     flags:
       - -trimpath
