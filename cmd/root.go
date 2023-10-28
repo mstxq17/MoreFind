@@ -18,6 +18,7 @@ import (
 )
 
 var logger *log.Logger
+var NewLine string
 
 // IPAndPort define custom struct
 // 自定义一个结构体
@@ -235,6 +236,16 @@ func genIP(cidr string) {
 	}
 }
 
+func preCommand(cmd *cobra.Command, args []string) bool {
+	// if cidr flag be selected，deal with it first
+	// 如果选择 cidr 参数，首先处理它
+	if myCidr != "" && myCidr != "__pipe__" {
+		genIP(myCidr)
+		return true
+	}
+	return false
+}
+
 func runCommand(cmd *cobra.Command, args []string) {
 	var _file *os.File
 	if file != "" {
@@ -281,12 +292,7 @@ func runCommand(cmd *cobra.Command, args []string) {
 	// 支持最大读取单行 512MB 大小
 	scanner.Buffer(buf, 512*1024*1024)
 	// todo: current structure may be chaotic, should abstract the handle process
-	// if show flag be selected，deal with it first
-	// 如果选择 show 参数，首先处理它
-	if myCidr != "" && myCidr != "__pipe__" {
-		genIP(myCidr)
-		return
-	} else if myCidr == "__pipe__" {
+	if myCidr == "__pipe__" {
 		for scanner.Scan() {
 			line := strings.TrimSpace(scanner.Text())
 			genIP(line)
@@ -313,10 +319,10 @@ func runCommand(cmd *cobra.Command, args []string) {
 					minLength = len(line)
 				}
 				count++
-				fmt.Printf("%-5d%-7s\t%s%s", count, " Len:"+lineLength, line, core.NewLine())
+				fmt.Printf("%-5d%-7s\t%s%s", count, " Len:"+lineLength, line, NewLine)
 			}
-			fmt.Println("\n==================================================")
-			fmt.Printf("CountLine: %d MaxLength: %d, MinLength: %d\n", count, maxLength, minLength)
+			fmt.Printf("%v==================================================%v", NewLine, NewLine)
+			fmt.Printf("CountLine: %d MaxLength: %d, MinLength: %d%v", count, maxLength, minLength, NewLine)
 			return
 		}
 		if myLimitLen != "" {
@@ -340,7 +346,6 @@ func runCommand(cmd *cobra.Command, args []string) {
 	// 去除重复的url
 	found := make(map[string]bool)
 	foundWrite := make(map[string]bool)
-	newLine := core.NewLine()
 	// define stream myself
 	// 定义自己的输出流
 	var outputBuffer *core.MyBuffer
@@ -368,13 +373,13 @@ func runCommand(cmd *cobra.Command, args []string) {
 					if _, ok := found[_url]; !ok {
 						if myUrlFilter != "" {
 							if !filterExt(_url, myUrlFilter) {
-								outputBuffer.WriteString(_url, &customStringHandler, newLine)
+								outputBuffer.WriteString(_url, &customStringHandler, NewLine)
 								//fmt.Println(_url)
 								found[_url] = true
 								foundWrite[outputBuffer.TempString] = true
 							}
 						} else {
-							outputBuffer.WriteString(_url, &customStringHandler, newLine)
+							outputBuffer.WriteString(_url, &customStringHandler, NewLine)
 							//fmt.Println(_url)
 							found[_url] = true
 							foundWrite[outputBuffer.TempString] = true
@@ -396,7 +401,7 @@ func runCommand(cmd *cobra.Command, args []string) {
 					}
 					// remove repeated string
 					if _, ok := found[_domain]; !ok {
-						outputBuffer.WriteString(_domain, &customStringHandler, newLine)
+						outputBuffer.WriteString(_domain, &customStringHandler, NewLine)
 						//fmt.Println(_domain)
 						found[_domain] = true
 						foundWrite[outputBuffer.TempString] = true
@@ -420,12 +425,12 @@ func runCommand(cmd *cobra.Command, args []string) {
 					if myPrivateIp == true {
 						if isPrivateIP(ipWithPort) == false {
 							//fmt.Println(ipWithPort)
-							outputBuffer.WriteString(ipWithPort, &customStringHandler, newLine)
+							outputBuffer.WriteString(ipWithPort, &customStringHandler, NewLine)
 							foundWrite[outputBuffer.TempString] = true
 							found[ipWithPort] = true
 						}
 					} else {
-						outputBuffer.WriteString(ipWithPort, &customStringHandler, newLine)
+						outputBuffer.WriteString(ipWithPort, &customStringHandler, NewLine)
 						//fmt.Println(ipWithPort)
 						foundWrite[outputBuffer.TempString] = true
 						found[ipWithPort] = true
@@ -487,7 +492,15 @@ var (
 		Use:   "morefind",
 		Short: "MoreFind is a very fast script for searching URL、Domain and Ip from specified stream",
 		Long:  "",
-		Run:   runCommand,
+		Run: func(cmd *cobra.Command, args []string) {
+			// run high priority command first
+			// 先执行优先级高的命令
+			result := preCommand(cmd, args)
+			if result {
+				return
+			}
+			runCommand(cmd, args)
+		},
 	}
 )
 
@@ -502,9 +515,12 @@ func Execute() {
 }
 
 func init() {
-	// Set flag for global logger in init func
+	// set flag for global logger in init func
 	// 在 init 函数中创建全局 logger 并设置标志
 	logger = log.New(os.Stderr, "", log.Ldate|log.Ltime|log.Lshortfile)
+	// reduce the  amount of calling function
+	// 减少函数调用次数
+	NewLine = core.NewLine()
 	rootCmd.PersistentFlags().StringVarP(&file, "file", "f", "", "search the info in specified file(指定输入文件)")
 	rootCmd.PersistentFlags().StringVarP(&output, "output", "o", "", "output the result to specified file(指定输出文件)")
 	rootCmd.PersistentFlags().BoolVarP(&myIp, "ip", "i", false, "search ip from stdin or file(搜索IP)")
