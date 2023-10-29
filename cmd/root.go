@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/cheggaaa/pb/v3"
 	"github.com/mstxq17/MoreFind/core"
+	"github.com/mstxq17/MoreFind/update"
+	"github.com/mstxq17/MoreFind/vars"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/publicsuffix"
 	"log"
@@ -233,6 +235,11 @@ func genIP(cidr string) {
 	if !strings.Contains(cidr, "/") && !strings.Contains(cidr, "-") {
 		cidr = cidr + "/24"
 		genIP(cidr)
+	}
+}
+func updateCommand(cmd *cobra.Command, args []string) {
+	if myUpdate {
+		update.Update()
 	}
 }
 
@@ -488,6 +495,7 @@ var (
 	myRule       string
 	myFlag       string
 	myProgress   bool
+	myUpdate     bool
 	rootCmd      = &cobra.Command{
 		Use:   "morefind",
 		Short: "MoreFind is a very fast script for searching URL、Domain and Ip from specified stream",
@@ -495,6 +503,7 @@ var (
 		Run: func(cmd *cobra.Command, args []string) {
 			// run high priority command first
 			// 先执行优先级高的命令
+			updateCommand(cmd, args)
 			result := preCommand(cmd, args)
 			if result {
 				return
@@ -521,16 +530,16 @@ func init() {
 	// reduce the  amount of calling function
 	// 减少函数调用次数
 	NewLine = core.NewLine()
-	rootCmd.PersistentFlags().StringVarP(&file, "file", "f", "", "search the info in specified file(指定输入文件)")
-	rootCmd.PersistentFlags().StringVarP(&output, "output", "o", "", "output the result to specified file(指定输出文件)")
-	rootCmd.PersistentFlags().BoolVarP(&myIp, "ip", "i", false, "search ip from stdin or file(搜索IP)")
-	rootCmd.PersistentFlags().BoolVarP(&myPrivateIp, "exclude", "", false, "exclude internal/private segment of ip when searching ip(排除内网IP)")
-	rootCmd.PersistentFlags().BoolVarP(&myDomain, "domain", "d", false, "search domain from stdin or file(搜索域名)")
-	rootCmd.PersistentFlags().BoolVarP(&myRootDomain, "root", "", false, "only output the rootDomain when searching domain(只显示主域名)")
+	rootCmd.PersistentFlags().StringVarP(&file, "file", "f", "", "specifies the input file path (指定输入文件路径)")
+	rootCmd.PersistentFlags().StringVarP(&output, "output", "o", "", "specifies the output file path (指定输出文件路径)")
+	rootCmd.PersistentFlags().BoolVarP(&myIp, "ip", "i", false, "match ip from pipe or file stdin (搜索IP)")
+	rootCmd.PersistentFlags().BoolVarP(&myPrivateIp, "exclude", "", false, "exclude internal/private segment of ip when use -i/--ip (排除内网IP)")
+	rootCmd.PersistentFlags().BoolVarP(&myDomain, "domain", "d", false, "match domain from pipe or file stdin  (搜索域名)")
+	rootCmd.PersistentFlags().BoolVarP(&myRootDomain, "root", "", false, "only output the primary domain when use -d/--domain(只显示主域名)")
 	rootCmd.PersistentFlags().BoolVarP(&myWithPort, "port", "p", false, "only filter out domain&ip:port (保留域名&ip和端口)")
 	rootCmd.PersistentFlags().StringVarP(&myRule, "rule", "r", "", "use custom replacement rule (自定义输出替换规则 https://{}/)")
-	rootCmd.PersistentFlags().StringVarP(&myFlag, "flag", "", "{}", "replacement identification (替换标志位)")
-	rootCmd.PersistentFlags().BoolVarP(&myUrl, "url", "u", false, "search url from stdin or file(搜索URL)")
+	rootCmd.PersistentFlags().StringVarP(&myFlag, "flag", "", "{}", "specifies replacement identification (指定替换标志位)")
+	rootCmd.PersistentFlags().BoolVarP(&myUrl, "url", "u", false, "match url from pipe or file stdin (搜索URL)")
 	rootCmd.PersistentFlags().StringVarP(&myUrlFilter, "filter", "", "", "filter url with some useless ext(排除指定后缀的URL)")
 	// this trick occurs from https://stackoverflow.com/questions/70182858/how-to-create-flag-with-or-without-argument-in-golang-using-cobra
 	// help me a lot, so log it in the code， google dork: "flag needs an argument: cobra"
@@ -540,7 +549,8 @@ func init() {
 	rootCmd.PersistentFlags().Lookup("cidr").NoOptDefVal = "__pipe__"
 	rootCmd.PersistentFlags().StringVarP(&myLimitLen, "len", "l", "", "search specify the length of string, \"-l 35\" == \"-l 0-35\" (输出指定长度的行)")
 	rootCmd.PersistentFlags().BoolVarP(&myShow, "show", "s", false, "show the length of each line and summaries(输出统计信息)")
-	rootCmd.PersistentFlags().BoolVarP(&myProgress, "metric", "m", false, "output  executing progress metric status when reads big file(输出执行进度条,大文件读取可以用到)")
+	rootCmd.PersistentFlags().BoolVarP(&myProgress, "metric", "m", false, "output executing progress metric status when reads amount of lines (输出执行进度条,大文件读取有用)")
+	rootCmd.PersistentFlags().BoolVarP(&myUpdate, "update", "U", false, fmt.Sprintf("update %v engine to the latest released version (更新 MoreFind 到最新发行版)", vars.TOOLNAME))
 	// Dont sorted flag alphabetically
 	// 禁止排序参数，按代码定义顺序展示
 	rootCmd.PersistentFlags().SortFlags = false
