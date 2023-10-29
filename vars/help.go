@@ -1,0 +1,51 @@
+package vars
+
+const (
+	FileHelpEn = "Specifies the input file path."
+	FileHelpZh = "指定输入文件路径。"
+
+	OutputHelpEn = "Specifies the output file path."
+	OutputHelpZh = "指定输出文件路径。"
+
+	IPHelpEn = "Matches an IP from the input pipe or file."
+	IPHelpZh = "从输入管道或文件中匹配 IP。"
+
+	ExcludeHelpEn = "Excludes internal/private IP segments when using -i/--ip."
+	ExcludeHelpZh = "在使用 -i/--ip 时排除内部/私有 IP 段。"
+
+	DomainHelpEn = "Matches a domain from the input pipe or file."
+	DomainHelpZh = "从输入管道或文件中匹配域名。"
+
+	RootDomainHelpEn = "Outputs only the primary domain when using -d/--domain."
+	RootDomainHelpZh = "在使用 -d/--domain 时仅输出主要域名。"
+
+	WithPortHelpEn = "Filters only domain & IP:port combinations."
+	WithPortHelpZh = "仅筛选域名和 IP:端口 组合。"
+
+	RuleHelpEn = "Utilizes a custom replacement rule (custom output replacement rule: https://{}/)."
+	RuleHelpZh = "使用自定义输出替换规则（自定义输出替换规则：https://{}/）。"
+
+	FlagHelpEn = "Specifies the replacement identification."
+	FlagHelpZh = "指定替换标识。"
+
+	URLHelpEn = "Matches URLs from the input pipe or file."
+	URLHelpZh = "从输入管道或文件中匹配 URL。"
+
+	URLFilterHelpEn = "Filters URLs with specific extensions."
+	URLFilterHelpZh = "使用特定扩展名过滤 URL。"
+
+	CidrHelpEn = "Outputs the specified CIDR IP list."
+	CidrHelpZh = "输出指定 CIDR 范围内的所有 IP。"
+
+	LimitLenHelpEn = "Specifies the length of string, e.g., \"-l 35\" == \"-l 0-35\"."
+	LimitLenHelpZh = "指定字符串长度，例如，\"-l 35\" == \"-l 0-35\"。"
+
+	ShowHelpEn = "Displays the length of each line and provides summaries."
+	ShowHelpZh = "显示每行的长度并提供摘要。"
+
+	ProgressHelpEn = "Outputs execution progress metrics."
+	ProgressHelpZh = "读取大量行时输出执行进度指标状态。"
+
+	UpdateHelpEn = "Updates the tool engine to the latest released version."
+	UpdateHelpZh = "将工具引擎更新到最新版本。"
+)
