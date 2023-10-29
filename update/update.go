@@ -22,6 +22,20 @@ func GetUpdateToolCallback(toolName, version string, errorCallback ErrorCallback
 	return GetUpdateToolFromRepoCallback(toolName, version, "", errorCallback)
 }
 
+func GetLatestVersion(repoName string, version string) (string, error) {
+	gh, err := NewghReleaseDownloader(repoName)
+	if err != nil {
+		return "", err
+	}
+	latestVersion, err := semver.NewVersion(gh.Latest.GetTagName())
+	currentVersion, err := semver.NewVersion(version)
+	if IsOutdated(currentVersion.String(), latestVersion.String()) {
+		return gh.Latest.GetTagName(), err
+	} else {
+		return "", errx.NewMsg("no need update")
+	}
+}
+
 func GetUpdateToolFromRepoCallback(toolName, version, repoName string, errorCallback ErrorCallback) func() {
 	return func() {
 		logger := errorCallback()
