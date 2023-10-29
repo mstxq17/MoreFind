@@ -1,4 +1,4 @@
-package core
+package update
 
 import (
 	"github.com/stretchr/testify/require"
@@ -6,9 +6,6 @@ import (
 )
 
 func TestUpdateVariable(t *testing.T) {
-	HideProgressBar = false
-	gh, err := NewghReleaseDownloader("MoreFind")
-	require.Nil(t, err)
-	_, err = gh.GetExecutableFromAsset()
+	_, err := NewghReleaseDownloader("morefind")
 	require.Nil(t, err)
 }

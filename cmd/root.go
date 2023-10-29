@@ -29,6 +29,8 @@ type IPAndPort struct {
 	Port string
 }
 
+type ErrorCallback func() *log.Logger
+
 func isIPAddr(domain string) bool {
 	ipaddr := net.ParseIP(domain)
 	return ipaddr != nil
@@ -196,7 +198,7 @@ func inc(ip net.IP) {
 }
 
 func genIP(cidr string) {
-	// fix parse error because of \n in window env
+	// fix parse errx because of \n in window env
 	// 修复 window 因为多了换行符导致的错误
 	cidr = strings.TrimSpace(cidr)
 	if strings.Contains(cidr, "/") {
@@ -237,9 +239,13 @@ func genIP(cidr string) {
 		genIP(cidr)
 	}
 }
+
 func updateCommand(cmd *cobra.Command, args []string) {
+	callBackError := func() *log.Logger {
+		return logger
+	}
 	if myUpdate {
-		update.Update()
+		update.GetUpdateToolCallback(vars.TOOLNAME, vars.VERSION, callBackError)()
 	}
 }
 
@@ -381,13 +387,11 @@ func runCommand(cmd *cobra.Command, args []string) {
 						if myUrlFilter != "" {
 							if !filterExt(_url, myUrlFilter) {
 								outputBuffer.WriteString(_url, &customStringHandler, NewLine)
-								//fmt.Println(_url)
 								found[_url] = true
 								foundWrite[outputBuffer.TempString] = true
 							}
 						} else {
 							outputBuffer.WriteString(_url, &customStringHandler, NewLine)
-							//fmt.Println(_url)
 							found[_url] = true
 							foundWrite[outputBuffer.TempString] = true
 						}
@@ -409,7 +413,6 @@ func runCommand(cmd *cobra.Command, args []string) {
 					// remove repeated string
 					if _, ok := found[_domain]; !ok {
 						outputBuffer.WriteString(_domain, &customStringHandler, NewLine)
-						//fmt.Println(_domain)
 						found[_domain] = true
 						foundWrite[outputBuffer.TempString] = true
 					}
@@ -431,14 +434,12 @@ func runCommand(cmd *cobra.Command, args []string) {
 				if _, ok := found[ipWithPort]; !ok {
 					if myPrivateIp == true {
 						if isPrivateIP(ipWithPort) == false {
-							//fmt.Println(ipWithPort)
 							outputBuffer.WriteString(ipWithPort, &customStringHandler, NewLine)
 							foundWrite[outputBuffer.TempString] = true
 							found[ipWithPort] = true
 						}
 					} else {
 						outputBuffer.WriteString(ipWithPort, &customStringHandler, NewLine)
-						//fmt.Println(ipWithPort)
 						foundWrite[outputBuffer.TempString] = true
 						found[ipWithPort] = true
 					}
@@ -502,12 +503,13 @@ var (
 		Long:  "",
 		Run: func(cmd *cobra.Command, args []string) {
 			// run high priority command first
-			// 先执行优先级高的命令
+			// 先执行优先级高的命令,如额更新执行
 			updateCommand(cmd, args)
-			result := preCommand(cmd, args)
-			if result {
+			// 若 preCommand 返回 true，表示命令执行成功，直接返回
+			if preCommand(cmd, args) {
 				return
 			}
+			// 如果 preCommand 返回 false，继续执行 runCommand
 			runCommand(cmd, args)
 		},
 	}
