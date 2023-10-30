@@ -7,10 +7,11 @@ func MatchLine(line, pattern string, inverse bool) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if regexPattern.MatchString(line) && !inverse {
+	result := regexPattern.MatchString(line)
+	if result && !inverse {
 		return line, nil
 	}
-	if !regexPattern.MatchString(line) && inverse {
+	if !result && inverse {
 		return line, nil
 	}
 	return "", nil
