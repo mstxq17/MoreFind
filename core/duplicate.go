@@ -3,9 +3,6 @@ package core
 import "regexp"
 
 const (
-	threshold = 10
-)
-const (
 	ALPHANUMERIC = "{ALPHANUMERIC}"
 )
 
