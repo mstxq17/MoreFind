@@ -24,8 +24,9 @@ const (
 )
 
 var (
-	extIfFound        = ".exe"
-	GlobalTimeout     = time.Duration(10) * time.Second
+	extIfFound = ".exe"
+	// 下载时间应该设置大一些防止网速不好的情况
+	GlobalTimeout     = time.Duration(60) * time.Second
 	DefaultHttpClient *http.Client
 )
 
@@ -45,11 +46,12 @@ type GHReleaseDownloader struct {
 // 获取最新发新版信息并报告错误
 func (d *GHReleaseDownloader) getLatestRelease() error {
 	release, resp, err := d.ghClient.Repositories.GetLatestRelease(context.Background(), d.owner, d.repoName)
+	var rateLimitErr *github.RateLimitError
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			return errx.NewMsgf("updater -> repo %v/%v not found got %v", d.owner, d.repoName)
-		} else if resp != nil && (resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusUnauthorized) {
-			return errx.NewMsg("updater -> gh auth failed try unsetting GITHUB_TOKEN env variable")
+		} else if errx.As(err, &rateLimitErr) {
+			return errx.NewMsg("hit github ratelimit while downloading latest release")
 		}
 		if resp == nil {
 			return errx.NewWrapError(err, "updater -> network connect error")
@@ -63,8 +65,8 @@ func (d *GHReleaseDownloader) getLatestRelease() error {
 func NewghReleaseDownloader(RepoName string) (*GHReleaseDownloader, error) {
 	var owner, repoName string
 	if strings.Contains(RepoName, "/") {
-		// if has diagonal that means mstxq17/MoreFind
-		// 如果有 / 说明是 mstxq17/MoreFind 的形式
+		// if it has diagonal that means mstxq17/MoreFind
+		// 如果/存在，则说明是 mstxq17/MoreFind 的形式
 		arr := strings.Split(RepoName, "/")
 		if len(arr) != 2 {
 			return nil, errx.NewMsgf("update RepoName: %v cannot be parsed", RepoName)
@@ -173,7 +175,7 @@ func (d *GHReleaseDownloader) GetExecutableFromAsset() ([]byte, error) {
 	var bin []byte
 	var err error
 	getToolCallback := func(path string, fileInfo fs.FileInfo, data io.Reader) error {
-		if !strings.EqualFold(strings.TrimSuffix(fileInfo.Name(), extIfFound), d.assetName) {
+		if !strings.EqualFold(strings.TrimSuffix(fileInfo.Name(), extIfFound), ToolName) {
 			return nil
 		}
 		bin, err = io.ReadAll(data)

@@ -27,3 +27,7 @@ func NewMsgf(format string, args ...any) error {
 func NewMsg(message string) error {
 	return errors.New(message)
 }
+
+func As(err error, target interface{}) bool {
+	return errors.As(err, target)
+}
