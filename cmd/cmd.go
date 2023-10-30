@@ -29,6 +29,10 @@ var versionCmd = &cobra.Command{
 
 var pattern string
 var inverseMatch bool // Define a variable to hold the value of the inverse match flag
+var cmpMode int
+var strictMode bool
+var smart bool
+var threshold int
 
 var grepCmd = &cobra.Command{
 	Use:   "grep",
@@ -58,6 +62,71 @@ var grepCmd = &cobra.Command{
 	},
 }
 
+var diffCmd = &cobra.Command{
+	Use:   "diff",
+	Short: "File Comparator between two files",
+	Long:  `File Comparator, a robust Golang tool, With options for strict or sorted comparison.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		if len(args) == 2 {
+			file1Name := args[0]
+			file2Name := args[1]
+			lines1, err1 := core.ReadLines(file1Name)
+			lines2, err2 := core.ReadLines(file2Name)
+			if err1 != nil || err2 != nil {
+				logger.Fatal(err1, err2)
+			}
+			onlyInA, onlyInB, inBoth := core.CompareFiles(lines1, lines2, strictMode)
+			if cmpMode < 1 || cmpMode > 3 {
+				logger.Fatalf("cmpMode value must between 1-3, you pass: %v", cmpMode)
+			}
+			if cmpMode == 1 {
+				for _, line := range onlyInA {
+					fmt.Println(line)
+				}
+			}
+			if cmpMode == 2 {
+				for _, line := range onlyInB {
+					fmt.Println(line)
+				}
+			}
+			if cmpMode == 3 {
+				for _, line := range inBoth {
+					fmt.Println(line)
+				}
+			}
+		} else {
+			fmt.Println("Missing enough params ......")
+			fmt.Printf("Usage: %v\t%s cmp a.txt b.txt -M [1/2/3]%v", core.NewLine(), vars.TOOLNAME, core.NewLine())
+		}
+	},
+}
+
+var deduCmd = &cobra.Command{
+	Use:   "dedu",
+	Short: "De-duplicated lines",
+	Long:  `De-duplicated lines Applying multiple heuristics techniques`,
+	Run: func(cmd *cobra.Command, args []string) {
+		fileStdin, _ := handleStdin(file)
+		defer func() {
+			if err := fileStdin.Close(); err != nil {
+				log.Fatal(err)
+			}
+		}()
+		reader := bufio.NewReader(fileStdin)
+		scanner := bufio.NewScanner(reader)
+		buf := make([]byte, 0, 64*1024)
+		scanner.Buffer(buf, MaxTokenSize)
+		dr := core.NewDuplicateRemover(threshold, smart)
+		for scanner.Scan() {
+			line := scanner.Text()
+			rResult := dr.RemoveDuplicator(line)
+			if rResult != "" {
+				fmt.Println(rResult)
+			}
+		}
+	},
+}
+
 func init() {
 	// try other style to parse params
 	// 尝试使用不同的风格命令参数获取
@@ -65,6 +134,22 @@ func init() {
 	grepCmd.Flags().BoolVarP(&inverseMatch, "inverse-match", "v", false, "Invert the match")
 	grepCmd.SetUsageTemplate(usageTemplate)
 	grepCmd.SetHelpTemplate(helpTemplate)
+	// compare two file and match different mode result
+	// 比较文件并匹配不同模式的结果
+	diffCmd.Flags().IntVarP(&cmpMode, "mode", "M", 3, "1: A-B 2: B-A B 3: A&B")
+	diffCmd.Flags().BoolVarP(&strictMode, "strict", "", false, "Match line by line in strict mode (None Default)")
+	diffCmd.SetUsageTemplate(usageTemplate)
+	diffCmd.SetHelpTemplate(helpTemplate)
+	// de-duplicated lines
+	// 去重复行
+	deduCmd.Flags().BoolVarP(&smart, "smart", "", false, "Use heuristic technique to remove duplicated lien")
+	deduCmd.Flags().IntVarP(&threshold, "threshold", "t", 15, "set threshold for smart strategy")
+	deduCmd.SetUsageTemplate(usageTemplate)
+	deduCmd.SetHelpTemplate(deduHelpTemplate)
+	// add to root command
+	// 添加到 主命令
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(grepCmd)
+	rootCmd.AddCommand(diffCmd)
+	rootCmd.AddCommand(deduCmd)
 }

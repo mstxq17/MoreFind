@@ -4,7 +4,7 @@ package cmd
 var helpTemplate = `{{.Long | trim}}
 
 Usage:
-  {{.CommandPath}} [flags]
+  {{.CommandPath}} [params] [flags]
 {{if .Runnable}}
 Flags:
 {{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}
@@ -13,3 +13,13 @@ Flags:
 
 // Usage template defines the format of the usage message.
 var usageTemplate = `Usage: {{.CommandPath}} [flags]`
+
+var deduHelpTemplate = `{{.Long | trim}}
+
+Usage:
+  {{.CommandPath}} [flags]
+{{if .Runnable}}
+Flags:
+{{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}
+
+`
