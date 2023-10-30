@@ -19,6 +19,10 @@ import (
 	"strings"
 )
 
+const (
+	MaxTokenSize = 512 * 1024 * 1024
+)
+
 var logger *log.Logger
 var NewLine string
 
@@ -240,6 +244,29 @@ func genIP(cidr string) {
 	}
 }
 
+func handleStdin(file string) (*os.File, os.FileInfo) {
+	var _file *os.File
+	if file != "" {
+		var err error
+		_file, err = os.Open(file)
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		_file = os.Stdin
+	}
+	// use features to solve  whether  has input
+	// 利用特性解决程序是否有输入的问题
+	fi, _ := _file.Stat()
+	if (fi.Mode() & os.ModeCharDevice) != 0 {
+		logger.Println("No input found, exit ...")
+		// optimize exit logic
+		// 优化退出逻辑
+		os.Exit(0)
+	}
+	return _file, fi
+}
+
 func updateCommand(cmd *cobra.Command, args []string) {
 	callBackError := func() *log.Logger {
 		return logger
@@ -260,32 +287,16 @@ func preCommand(cmd *cobra.Command, args []string) bool {
 }
 
 func runCommand(cmd *cobra.Command, args []string) {
-	var _file *os.File
-	if file != "" {
-		var err error
-		_file, err = os.Open(file)
-		if err != nil {
-			panic(err)
+	// unified data stream
+	// 统一数据流
+	_file, fi := handleStdin(file)
+	// prevent memory leaking
+	// 防止内存泄漏
+	defer func() {
+		if err := _file.Close(); err != nil {
+			log.Fatal(err)
 		}
-		// prevent memory leaking
-		// 防止内存泄漏
-		defer func() {
-			if err = _file.Close(); err != nil {
-				log.Fatal(err)
-			}
-		}()
-	} else {
-		_file = os.Stdin
-	}
-	// use features to solve  whether  has input
-	// 利用特性解决程序是否有输入的问题
-	fi, _ := _file.Stat()
-	if (fi.Mode() & os.ModeCharDevice) != 0 {
-		logger.Println("No input found, exit ...")
-		// optimize exit logic
-		// 优化退出逻辑
-		os.Exit(0)
-	}
+	}()
 	// define global reader of input
 	// 定义全局输入读取流
 	var scanner *bufio.Scanner
@@ -303,7 +314,7 @@ func runCommand(cmd *cobra.Command, args []string) {
 	buf := make([]byte, 0, 64*1024)
 	// support maximum  512MB buffer every line
 	// 支持最大读取单行 512MB 大小
-	scanner.Buffer(buf, 512*1024*1024)
+	scanner.Buffer(buf, MaxTokenSize)
 	// todo: current structure may be chaotic, should abstract the handle process
 	if myCidr == "__pipe__" {
 		for scanner.Scan() {
@@ -548,6 +559,7 @@ func init() {
 	// help me a lot, so log it in the code， google dork: "flag needs an argument: cobra"
 	// 感谢 https://stackoverflow.com/questions/70182858/how-to-create-flag-with-or-without-argument-in-golang-using-cobra 提供了如何解决--filter 默认参数的问题
 	rootCmd.PersistentFlags().Lookup("filter").NoOptDefVal = "js,css,json,png,jpg,html,xml,zip,rar"
+
 	rootCmd.PersistentFlags().StringVarP(&myCidr, "cidr", "c", "", vars.CidrHelpEn)
 	rootCmd.PersistentFlags().Lookup("cidr").NoOptDefVal = "__pipe__"
 	rootCmd.PersistentFlags().StringVarP(&myLimitLen, "len", "l", "", vars.LimitLenHelpEn)
