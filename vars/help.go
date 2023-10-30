@@ -48,4 +48,22 @@ const (
 
 	UpdateHelpEn = "Updates the tool engine to the latest released version."
 	UpdateHelpZh = "将工具引擎更新到最新版本。"
+
+	GrepPatternHelpEn = "Pattern for regex."
+	GrepPatternHelpZh = "正则表达式模式。"
+
+	InverseMatchHelpEn = "Invert the match pattern."
+	InverseMatchHelpZh = "反转匹配模式。"
+
+	DiffCmdHelpEn = "Compares files using different modes:\n1: A-B\n2: B-A\n3: A&B"
+	DiffCmdHelpZh = "使用不同模式比较文件：\n1：A-B\n2：B-A\n3：A&B"
+
+	StrictModeHelpEn = "Match lines strictly one by one (non-default)."
+	StrictModeHelpZh = "严格逐行匹配（非默认）。"
+
+	SmartHelpEn = "Use heuristic technique to remove duplicated lines."
+	SmartHelpZh = "使用启发式技术去除重复行。"
+
+	ThresholdHelpEn = "Set threshold for smart strategy."
+	ThresholdHelpZh = "设置智能策略的阈值。"
 )

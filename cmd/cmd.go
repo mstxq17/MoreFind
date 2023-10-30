@@ -130,22 +130,25 @@ var deduCmd = &cobra.Command{
 func init() {
 	// try other style to parse params
 	// 尝试使用不同的风格命令参数获取
-	grepCmd.Flags().StringVarP(&pattern, "pattern", "P", "", "Pattern to search")
-	grepCmd.Flags().BoolVarP(&inverseMatch, "inverse-match", "v", false, "Invert the match")
+	grepCmd.Flags().StringVarP(&pattern, "pattern", "P", "", vars.GrepPatternHelpEn)
+	grepCmd.Flags().BoolVarP(&inverseMatch, "inverse-match", "v", false, vars.InverseMatchHelpEn)
 	grepCmd.SetUsageTemplate(usageTemplate)
 	grepCmd.SetHelpTemplate(helpTemplate)
+	grepCmd.Flags().SortFlags = false
 	// compare two file and match different mode result
 	// 比较文件并匹配不同模式的结果
-	diffCmd.Flags().IntVarP(&cmpMode, "mode", "M", 3, "1: A-B 2: B-A B 3: A&B")
-	diffCmd.Flags().BoolVarP(&strictMode, "strict", "", false, "Match line by line in strict mode (None Default)")
+	diffCmd.Flags().IntVarP(&cmpMode, "mode", "M", 3, vars.DiffCmdHelpEn)
+	diffCmd.Flags().BoolVarP(&strictMode, "strict", "", false, vars.StrictModeHelpEn)
 	diffCmd.SetUsageTemplate(usageTemplate)
 	diffCmd.SetHelpTemplate(helpTemplate)
+	diffCmd.Flags().SortFlags = false
 	// de-duplicated lines
 	// 去重复行
-	deduCmd.Flags().BoolVarP(&smart, "smart", "", false, "Use heuristic technique to remove duplicated lien")
-	deduCmd.Flags().IntVarP(&threshold, "threshold", "t", 15, "set threshold for smart strategy")
+	deduCmd.Flags().BoolVarP(&smart, "smart", "", false, vars.SmartHelpEn)
+	deduCmd.Flags().IntVarP(&threshold, "threshold", "t", 15, vars.ThresholdHelpEn)
 	deduCmd.SetUsageTemplate(usageTemplate)
 	deduCmd.SetHelpTemplate(deduHelpTemplate)
+	deduCmd.Flags().SortFlags = false
 	// add to root command
 	// 添加到 主命令
 	rootCmd.AddCommand(versionCmd)
