@@ -5,13 +5,13 @@
 
 ![image-20231019140857250](README.assets/image-20231019140857250.png)
 
-##  欢迎使用
+##  欢迎使用 :zap: 
 
 本工具开发崇尚第一原则： 小、简、美  
 
 如果有简单的需求可以提交ISSUE，不支持复杂需求，目前该工具已经能满足作者工作常用的大部分操作。
 
-## 快速安装
+## 快速安装 :zap: 
 
 方式一: 通过Go包管理安装
 ```bash
@@ -19,8 +19,8 @@ go install  github.com/mstxq17/MoreFind@latest
 ```
 方式二: 直接安装二进制文件
 ```bash
-wget --no-check-certificate  https://ghproxy.com/https://github.com/mstxq17/MoreFind/releases/download/v1.4.7/MoreFind_v1.4.7_`uname -s`_`uname -m`.tar.gz
-tar -xzvf MoreFind_v1.4.7_`uname -s`_`uname -m`.tar.gz
+wget --no-check-certificate  https://ghproxy.com/https://github.com/mstxq17/MoreFind/releases/download/v1.5.1/MoreFind_v1.5.1_`uname -s`_`uname -m`.tar.gz
+tar -xzvf MoreFind_v1.5.1_`uname -s`_`uname -m`.tar.gz
 sudo mv ./MoreFind /usr/bin/MoreFind && chmod +x /usr/bin/MoreFind
 ```
 
@@ -36,14 +36,14 @@ chmod +x ./build.sh && ./build.sh
 
 
 
-## 用法说明
+## 用法说明 **:fire:**
 
 显示帮助信息
 ```bash
 MoreFind -h
 ```
 ```bash
-MoreFind is a very fast script for searching URL、Domain and Ip from specified stream
+MoreFind is a very rapid script for extracting URL、Domain and Ip from data stream
 
 Usage:
   morefind [flags]
@@ -51,29 +51,32 @@ Usage:
 
 Available Commands:
   completion  Generate the autocompletion script for the specified shell
+  dedu        De-duplicated lines
+  diff        File Comparator between two files
+  grep        If no grep , use this
   help        Help about any command
   version     Print the semantic version number of MoreFind
 
 Flags:
-  -f, --file string                                              search the info in specified file(指定输入文件)
-  -o, --output string                                            output the result to specified file(指定输出文件)
-  -i, --ip                                                       search ip from stdin or file(搜索IP)
-      --exclude                                                  exclude internal/private segment of ip when searching ip(排除内网IP)
-  -d, --domain                                                   search domain from stdin or file(搜索域名)
-      --root                                                     only output the rootDomain when searching domain(只显示主域名)
-  -p, --port                                                     only filter out domain&ip:port (保留域名&ip和端口)
-  -r, --rule string                                              use custom replacement rule (自定义输出替换规则 https://{}/)
-      --flag string                                              replacement identification (替换标志位) (default "{}")
-  -u, --url                                                      search url from stdin or file(搜索URL)
-      --filter string[="js,css,json,png,jpg,html,xml,zip,rar"]   filter url with some useless ext(排除指定后缀的URL)
-  -c, --cidr string[="__pipe__"]                                 output the specified cidr ip list (输出指定CIDR范围内的所有IP)
-  -l, --len string                                               search specify the length of string, "-l 35" == "-l 0-35" (输出指定长度的行)
-  -s, --show                                                     show the length of each line and summaries(输出统计信息)
-  -m, --metric                                                   output  executing progress metric status when reads big file(输出执行进度条,大文件读取可以用到)
+  -f, --file string                                              Specifies the input file path.
+  -o, --output string                                            Specifies the output file path.
+  -i, --ip                                                       Matches an IP from the input pipe or file.
+      --exclude                                                  Excludes internal/private IP segments when using -i/--ip.
+  -d, --domain                                                   Matches a domain from the input pipe or file.
+      --root                                                     Outputs only the primary domain when using -d/--domain.
+  -p, --port                                                     Filters only domain & IP:port combinations.
+  -r, --rule string                                              Filters only domain & IP:port combinations.
+      --flag string                                              Specifies the replacement identification. (default "{}")
+  -u, --url                                                      Matches URLs from the input pipe or file.
+      --filter string[="js,css,json,png,jpg,html,xml,zip,rar"]   Filters URLs with specific extensions.
+  -c, --cidr string[="__pipe__"]                                 Outputs the specified CIDR IP list.
+  -l, --len string                                               Specifies the length of string, e.g., "-l 35" == "-l 0-35".
+  -s, --show                                                     Displays the length of each line and provides summaries.
+  -m, --metric                                                   Outputs execution progress metrics.
+  -U, --update                                                   Updates the tool engine to the latest released version.
   -h, --help                                                     help for morefind
 
 Use "morefind [command] --help" for more information about a command.
-
 ```
 
 
@@ -152,7 +155,7 @@ MoreFind -i --exclude -r "http://{}/"
 
 
 
-*) 支持输出执行进度，读取大文件的时候让你心里有数 (默认不开启)
+8) 支持输出执行进度，读取大文件的时候让你心里有数 (默认不开启)
 
 ```bash
 MoreFind -f 1.txt -m 
@@ -160,6 +163,15 @@ MoreFind -f 1.txt --metric
 ```
 
 ![image-20231023031640316](README.assets/image-20231023031640316.png)
+
+9）支持检测最新版本并自动更新
+
+```bash
+MoreFind -U
+MoreFind --update
+```
+
+![image-20231031085701682](README.assets/image-20231031085701682.png)
 
 
 
@@ -177,9 +189,60 @@ MoreFind -u -d -i -o result.txt
 echo -e 'baidu.com ccccxxxx 1.com'|MoreFind -d |MoreFind -l 5  
 ```
 
+## 命令增强 **:boom:**
+
+目前新增三个子命令:
+
+> 子命令相当于 MoreFind 独立出来的一个子模块，起到补充增强的作用，目前代码结构存在多种可能性，整体处于灰度测试状态
+
+1） 启发式去重
+
+```bash
+MoreFind dedu -h
+# 基础去重
+cat baidu.txt| MoreFind dedu 
+# 智能去重复，去重相似的，目前只有一个规则
+cat baidu.txt| MoreFind dedu --smart 
+# -t / --theshold 是相似的阈值当超过指定值就不会进行输出
+cat baidu.txt| MoreFind dedu --smart -t 20
+```
+
+![image-20231031090513302](README.assets/image-20231031090513302.png)
 
 
-## 使用场景
+
+2）diff 比较 / 严格比较两个文件的行，支持输出三种结果: 1）A文件有的，B文件没有的行 2）B有A没有的  3）AB都有的
+
+```bash
+MoreFind diff -h
+MoreFind diff 1.txt 2.txt -M 1 
+MoreFind diff 1.txt 2.txt -M 2
+MoreFind diff 1.txt 2.txt -M 3
+# 严格按照顺序逐行比较
+MoreFind diff 1.txt 2.txt -M 1 --strict
+```
+
+![image-20231031090600695](README.assets/image-20231031090600695.png)
+
+
+
+3）grep 功能，抛弃window的find，实现 OSX/Linux 才有的正则匹配功能，统一使用
+
+```bash
+MoreFind grep -h
+# 正则匹配
+cat 1.txt|MoreFind grep "baidu.com"    ==  cat 1.txt|MoreFind grep -P "baidu.com"
+# 反选
+cat 1.txt|MoreFind grep "baidu.com" -v == cat 1.txt|MoreFind grep -P "baidu.com" -v
+```
+
+![image-20231031091824133](README.assets/image-20231031091824133.png)
+
+
+
+
+
+## 使用场景 **:fire:**
 
 假设当前你有这样一个文本文件
 
@@ -260,8 +323,7 @@ cat 1.txt|MoreFind -d --port -r "https://redacted.com/{}/?url={}"
 ![image-20231019133533504](README.assets/image-20231019133533504.png)
 
 
-
-## 性能方面 
+## 性能方面 :rocket: 
 
 二进制文件大小约6.4M，
 
@@ -277,7 +339,7 @@ time MoreFind -f ok_domain.txt
 
 > 虽然MoreFind 完全满足日常工作使用，但其不适合处理单行过长的文件，后面可能考虑优化，但是这种场景应该有更好的解决方案，我个人不是很愿意集成到MoreFind，不过还是放TODOS。
 
-## TODO
+## TODO 条目 **:white_check_mark:**
 
 - [x] 输出结果自动去重复
 - [x] 搜索ip的时候支持排除私有IP地址
@@ -291,12 +353,15 @@ time MoreFind -f ok_domain.txt
 - [x] 支持生成解析CIDR从而生成指定ip列表
 - [x] 支持自定义输出规则，如原输出123 -> http://{}/ -> 转换输出-> http://123/
 - [x] 排除内网IP功能，增加支持对回环本地IP进行过滤
-- [x] 增加执行状态参数，实时输出打印程序的执行过程进度条
+- [x] 增加执行状态参数，实时输出程序的执行过程的进度条
 - [x] 完善Log的输出和处理(* 继续需要改进)
+- [x] 加入部分URL智能去重代码
+- [x] 支持优化读取单行超大文本(* 这一块有点问题)
+- [x] 支持简单的grep功能: 正则匹配和反选
+- [x] 支持比较两个文件的每一行并输出3种结果
+- [x] 支持检测最新版本并实现自更新
+- [x] 命令帮助信息规范化，目前默认统一为英文
 - [ ] 增强cidr生成IP列表功能，支持输出ip的多种格式
 - [ ] 支持命令行控制显示中文/英文的帮助提示
 - [ ] 重新设计代码结构，并完善脚本异常处理部分
-- [ ] 加入部分URL智能去重代码
-- [ ] 实现自动强制更新，每次运行执行检查
-- [ ] 支持优化读取单行超大文本
 - [ ] 优化项目代码和提高程序执行速度!!! >>>>>>>>>>>>>>>>>>>>
