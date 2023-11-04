@@ -17,6 +17,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 const (
@@ -124,7 +125,6 @@ func searchIp(line string) []IPAndPort {
 		result = append(result, entry)
 	}
 	return result
-	//return ipRegex.FindAllString(line, -1)
 }
 
 func filterLen(lenRange string) (int, int) {
@@ -201,7 +201,7 @@ func inc(ip net.IP) {
 	}
 }
 
-func genIP(cidr string) {
+func genIP(cidr string, outputchan chan string) {
 	// fix parse errx because of \n in window env
 	// 修复 window 因为多了换行符导致的错误
 	cidr = strings.TrimSpace(cidr)
@@ -211,7 +211,7 @@ func genIP(cidr string) {
 			logger.Println("无法解析CIDR地址:", err)
 		} else {
 			for ip := ip.Mask(ipnet.Mask); ipnet.Contains(ip); inc(ip) {
-				fmt.Println(ip)
+				outputchan <- ip.String()
 			}
 		}
 	}
@@ -235,12 +235,12 @@ func genIP(cidr string) {
 		}
 		ipList := core.IPRange(startIPStr, endIPStr)
 		for _, ip := range ipList {
-			fmt.Println(ip)
+			outputchan <- ip
 		}
 	}
 	if !strings.Contains(cidr, "/") && !strings.Contains(cidr, "-") {
 		cidr = cidr + "/24"
-		genIP(cidr)
+		genIP(cidr, outputchan)
 	}
 }
 
@@ -277,13 +277,23 @@ func updateCommand(cmd *cobra.Command, args []string) {
 }
 
 func preCommand(cmd *cobra.Command, args []string) bool {
+	// 输出
+	outputchan := make(chan string)
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go syncOutput(&wg, outputchan)
 	// if cidr flag be selected，deal with it first
 	// 如果选择 cidr 参数，首先处理它
 	if myCidr != "" && myCidr != "__pipe__" {
-		genIP(myCidr)
+		genIP(myCidr, outputchan)
+		close(outputchan)
+		wg.Wait()
 		return true
+	} else {
+		close(outputchan)
+		wg.Wait()
+		return false
 	}
-	return false
 }
 
 func runCommand(cmd *cobra.Command, args []string) {
@@ -315,12 +325,23 @@ func runCommand(cmd *cobra.Command, args []string) {
 	// support maximum  512MB buffer every line
 	// 支持最大读取单行 512MB 大小
 	scanner.Buffer(buf, MaxTokenSize)
+	// 输出
+	outputchan := make(chan string)
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go syncOutput(&wg, outputchan)
 	// todo: current structure may be chaotic, should abstract the handle process
 	if myCidr == "__pipe__" {
 		for scanner.Scan() {
 			line := strings.TrimSpace(scanner.Text())
-			genIP(line)
+			genIP(line, outputchan)
 		}
+		// close the channel first
+		// 先关闭通道
+		close(outputchan)
+		// wait for ending, exit
+		// 等待输出结束，然后结束程序
+		wg.Wait()
 		return
 	}
 	if myUrl == false && myDomain == false && myIp == false {
@@ -369,7 +390,6 @@ func runCommand(cmd *cobra.Command, args []string) {
 	// remove duplicated url
 	// 去除重复的url
 	found := make(map[string]bool)
-	foundWrite := make(map[string]bool)
 	// define stream myself
 	// 定义自己的输出流
 	var outputBuffer *core.MyBuffer
@@ -397,15 +417,14 @@ func runCommand(cmd *cobra.Command, args []string) {
 					if _, ok := found[_url]; !ok {
 						if myUrlFilter != "" {
 							if !filterExt(_url, myUrlFilter) {
-								outputBuffer.WriteString(_url, &customStringHandler, NewLine)
+								outputBuffer.WriteString(_url, &customStringHandler)
 								found[_url] = true
-								foundWrite[outputBuffer.TempString] = true
 							}
 						} else {
-							outputBuffer.WriteString(_url, &customStringHandler, NewLine)
+							outputBuffer.WriteString(_url, &customStringHandler)
 							found[_url] = true
-							foundWrite[outputBuffer.TempString] = true
 						}
+						outputchan <- outputBuffer.TempString
 					}
 				}
 				if myDomain == true {
@@ -423,9 +442,9 @@ func runCommand(cmd *cobra.Command, args []string) {
 					}
 					// remove repeated string
 					if _, ok := found[_domain]; !ok {
-						outputBuffer.WriteString(_domain, &customStringHandler, NewLine)
+						outputBuffer.WriteString(_domain, &customStringHandler)
 						found[_domain] = true
-						foundWrite[outputBuffer.TempString] = true
+						outputchan <- outputBuffer.TempString
 					}
 				}
 			}
@@ -445,50 +464,25 @@ func runCommand(cmd *cobra.Command, args []string) {
 				if _, ok := found[ipWithPort]; !ok {
 					if myPrivateIp == true {
 						if isPrivateIP(ipWithPort) == false {
-							outputBuffer.WriteString(ipWithPort, &customStringHandler, NewLine)
-							foundWrite[outputBuffer.TempString] = true
+							outputBuffer.WriteString(ipWithPort, &customStringHandler)
 							found[ipWithPort] = true
 						}
 					} else {
-						outputBuffer.WriteString(ipWithPort, &customStringHandler, NewLine)
-						foundWrite[outputBuffer.TempString] = true
+						outputBuffer.WriteString(ipWithPort, &customStringHandler)
 						found[ipWithPort] = true
 					}
+					outputchan <- outputBuffer.TempString
 				}
 			}
 		}
-		fmt.Print(outputBuffer.String())
 		outputBuffer.Reset()
 	}
 	// maybe exceed maxTokenSize length
 	if err := scanner.Err(); err != nil {
 		logger.Println(err)
 	}
-	if output != "" {
-		_output, err := os.Create(output)
-		if err != nil {
-			logger.Fatal(err)
-		}
-		defer func(_output *os.File) {
-			err := _output.Close()
-			if err != nil {
-				logger.Fatal(err)
-			}
-		}(_output)
-		writer := bufio.NewWriter(_output)
-		//for key := range found {
-		for key := range foundWrite {
-			_, err := writer.WriteString(key)
-			if err != nil {
-				return
-			}
-		}
-		err = writer.Flush()
-		if err != nil {
-			logger.Fatal(err)
-			return
-		}
-	}
+	close(outputchan)
+	wg.Wait()
 }
 
 var (
@@ -508,6 +502,7 @@ var (
 	myFlag       string
 	myProgress   bool
 	myUpdate     bool
+	myIPFormats  []string
 	rootCmd      = &cobra.Command{
 		Use:   "morefind",
 		Short: "MoreFind is a very rapid script for extracting URL、Domain and Ip from data stream",
@@ -559,8 +554,8 @@ func init() {
 	// help me a lot, so log it in the code， google dork: "flag needs an argument: cobra"
 	// 感谢 https://stackoverflow.com/questions/70182858/how-to-create-flag-with-or-without-argument-in-golang-using-cobra 提供了如何解决--filter 默认参数的问题
 	rootCmd.PersistentFlags().Lookup("filter").NoOptDefVal = "js,css,json,png,jpg,html,xml,zip,rar"
-
 	rootCmd.PersistentFlags().StringVarP(&myCidr, "cidr", "c", "", vars.CidrHelpEn)
+	rootCmd.PersistentFlags().StringSliceVarP(&myIPFormats, "alter", "a", nil, vars.AlterHelpEn)
 	rootCmd.PersistentFlags().Lookup("cidr").NoOptDefVal = "__pipe__"
 	rootCmd.PersistentFlags().StringVarP(&myLimitLen, "len", "l", "", vars.LimitLenHelpEn)
 	rootCmd.PersistentFlags().BoolVarP(&myShow, "show", "s", false, vars.ShowHelpEn)

@@ -66,4 +66,7 @@ const (
 
 	ThresholdHelpEn = "Set threshold for smart strategy."
 	ThresholdHelpZh = "设置智能策略的阈值。"
+
+	AlterHelpEn = "IP Alters (0,1,2,3,4,5,6,7,8)"
+	AlterHelpZh = "IP 变换 (0,1,2,3,4,5,6,7,8)"
 )

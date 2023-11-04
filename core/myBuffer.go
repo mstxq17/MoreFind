@@ -36,15 +36,15 @@ func NewMyBuffer(isFilter bool) *MyBuffer {
 	}
 }
 
-func (_bytes *MyBuffer) WriteString(s string, handler stringHandler, newLine string) (n int, err error) {
+func (_bytes *MyBuffer) WriteString(s string, handler stringHandler) (n int, err error) {
 	// change the action of WriteString method
 	// 修改 WriteString 方法的行为
 	if _bytes.IsFilter {
-		_bytes.TempString = handler.HandleString(s) + newLine
+		_bytes.TempString = handler.HandleString(s)
 		return _bytes.buffer.WriteString(_bytes.TempString)
 	}
-	_bytes.TempString = s + newLine
-	return _bytes.buffer.WriteString(s + newLine)
+	_bytes.TempString = s
+	return _bytes.buffer.WriteString(s)
 }
 
 func (_bytes *MyBuffer) String() string {
