@@ -19,8 +19,8 @@ go install  github.com/mstxq17/MoreFind@latest
 ```
 方式二: 直接安装二进制文件
 ```bash
-wget --no-check-certificate  https://ghproxy.com/https://github.com/mstxq17/MoreFind/releases/download/v1.5.1/MoreFind_v1.5.1_`uname -s`_`uname -m`.tar.gz
-tar -xzvf MoreFind_v1.5.1_`uname -s`_`uname -m`.tar.gz
+wget --no-check-certificate  https://ghproxy.com/https://github.com/mstxq17/MoreFind/releases/download/v1.5.2/MoreFind_v1.5.2_`uname -s`_`uname -m`.tar.gz
+tar -xzvf MoreFind_v1.5.2_`uname -s`_`uname -m`.tar.gz
 sudo mv ./MoreFind /usr/bin/MoreFind && chmod +x /usr/bin/MoreFind
 ```
 
@@ -70,6 +70,7 @@ Flags:
   -u, --url                                                      Matches URLs from the input pipe or file.
       --filter string[="js,css,json,png,jpg,html,xml,zip,rar"]   Filters URLs with specific extensions.
   -c, --cidr string[="__pipe__"]                                 Outputs the specified CIDR IP list.
+  -a, --alter strings                                            IP Alters (0,1,2,3,4,5,6,7,8)
   -l, --len string                                               Specifies the length of string, e.g., "-l 35" == "-l 0-35".
   -s, --show                                                     Displays the length of each line and provides summaries.
   -m, --metric                                                   Outputs execution progress metrics.
@@ -77,9 +78,8 @@ Flags:
   -h, --help                                                     help for morefind
 
 Use "morefind [command] --help" for more information about a command.
+
 ```
-
-
 
 1)导出URL
 
@@ -146,16 +146,35 @@ echo -e "192.168.4.1/24\n192.168.1.1/24"|./MoreFind --cidr
 
 
 
-7)支持自定义输出规则
+7) 支持输出IP的8种格式
+
+```bash
+MoreFind --cidr="127.0.0.1/32" -a 1
+MoreFind --cidr="127.0.0.1/32" -a 2
+MoreFind --cidr="127.0.0.1/32" -a 1 -a 2
+MoreFind --cidr="127.0.0.1/32" --alter 3
+...
+```
+
+| Format                     | Index | Example                            |
+| -------------------------- | ----- | ---------------------------------- |
+| Dotted decimal             | 1     | `127.0.0.1`                        |
+| 0 Optimized dotted decimal | 2     | `127.1`                            |
+| Octal                      | 3     | `0177.0.0.01`                      |
+| Hexadecimal                | 4     | `0x7f.0x0.0x0.0x1`                 |
+| Decimal (Dword)            | 5     | `2130706433`                       |
+| Binary                     | 6     | `01111111000000000000000000000001` |
+| Mixed                      | 7     | `127.0x1`                          |
+| URL encoded                | 9     | `%31%32%37%2E%30%2E%30%2E%31`      |
+
+8)支持自定义输出规则
 
 ```bash
 # 最终会将结果替换到 {} 
 MoreFind -i --exclude -r "http://{}/"  
 ```
 
-
-
-8) 支持输出执行进度，读取大文件的时候让你心里有数 (默认不开启)
+9)支持输出执行进度，读取大文件的时候让你心里有数 (默认不开启)
 
 ```bash
 MoreFind -f 1.txt -m 
@@ -164,7 +183,7 @@ MoreFind -f 1.txt --metric
 
 ![image-20231023031640316](README.assets/image-20231023031640316.png)
 
-9）支持检测最新版本并自动更新
+a)支持检测最新版本并自动更新
 
 ```bash
 MoreFind -U
@@ -188,6 +207,8 @@ MoreFind -u -d -i -o result.txt
 ```bash
 echo -e 'baidu.com ccccxxxx 1.com'|MoreFind -d |MoreFind -l 5  
 ```
+
+
 
 ## 命令增强 **:boom:**
 
@@ -323,11 +344,12 @@ cat 1.txt|MoreFind -d --port -r "https://redacted.com/{}/?url={}"
 ![image-20231019133533504](README.assets/image-20231019133533504.png)
 
 
+
 ## 性能方面 :rocket: 
 
 二进制文件大小约6.4M，
 
-在i7 2.8ghz 环境跑完 646423W 条数据所需的时间为51s, 在性能上存在非常多的成长空间，TODO见。
+在i7 2.8ghz 环境跑完 646423W 条数据所需的时间为51s, 实际上在iterm会更快，不过MoreFind依然在性能上存在非常多的成长空间，TODO见。
 
 ```bash
 time MoreFind -f ok_domain.txt
@@ -335,9 +357,13 @@ time MoreFind -f ok_domain.txt
 
 ![image-20231019131641587](README.assets/image-20231019131641587.png)
 
+v1.5.0 版本增加不少功能，体积去到 8164KB，追求更高的压缩比使用`upx -9 MoreFind ` 压缩到 4052 KB。
+
 **Warning**
 
 > 虽然MoreFind 完全满足日常工作使用，但其不适合处理单行过长的文件，后面可能考虑优化，但是这种场景应该有更好的解决方案，我个人不是很愿意集成到MoreFind，不过还是放TODOS。
+
+
 
 ## TODO 条目 **:white_check_mark:**
 
@@ -361,7 +387,9 @@ time MoreFind -f ok_domain.txt
 - [x] 支持比较两个文件的每一行并输出3种结果
 - [x] 支持检测最新版本并实现自更新
 - [x] 命令帮助信息规范化，目前默认统一为英文
-- [ ] 增强cidr生成IP列表功能，支持输出ip的多种格式
+- [x] 增强cidr生成IP列表功能，支持输出ip的多种格式(thanks for mapcidr)
+- [x] 统一结果输出, 将 stdout&file 合并到相同逻辑处理
+- [ ] 考虑重构程序，增加对ipv6的支持
 - [ ] 支持命令行控制显示中文/英文的帮助提示
 - [ ] 重新设计代码结构，并完善脚本异常处理部分
 - [ ] 优化项目代码和提高程序执行速度!!! >>>>>>>>>>>>>>>>>>>>
