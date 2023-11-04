@@ -81,17 +81,23 @@ var diffCmd = &cobra.Command{
 			}
 			if cmpMode == 1 {
 				for _, line := range onlyInA {
-					fmt.Println(line)
+					if line != "" {
+						fmt.Println(line)
+					}
 				}
 			}
 			if cmpMode == 2 {
 				for _, line := range onlyInB {
-					fmt.Println(line)
+					if line != "" {
+						fmt.Println(line)
+					}
 				}
 			}
 			if cmpMode == 3 {
 				for _, line := range inBoth {
-					fmt.Println(line)
+					if line != "" {
+						fmt.Println(line)
+					}
 				}
 			}
 		} else {

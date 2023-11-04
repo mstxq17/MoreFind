@@ -3,15 +3,28 @@ package core
 import "regexp"
 
 const (
-	ALPHANUMERIC = "{ALPHANUMERIC}"
+	AlphanumericOtherMixed = "{ALPHANUMERIC_OTHER_MIXED}"
+	PureNumber             = "{PURE_NUMBER}"
 )
+
+var Filters = map[string]string{
+	AlphanumericOtherMixed: `[0-9A-Za-z_-]{8,}`,
+	PureNumber:             `[0-9]{2,7}`,
+}
+
+// OrderFilters distribute filter order is required because of unordered map
+// OrderFilters 组织好过滤顺序是必须的，解决map的无序问题
+var OrderFilters = []string{
+	AlphanumericOtherMixed,
+	PureNumber,
+}
 
 type DuplicateRemover struct {
 	linesMap   map[string]struct{}
 	linesCount map[string]int
 	threshold  int
 	smart      bool
-	ANRegexp   *regexp.Regexp
+	ANRegexp   map[string]*regexp.Regexp
 }
 
 func NewDuplicateRemover(threshold int, smart bool) *DuplicateRemover {
@@ -21,7 +34,15 @@ func NewDuplicateRemover(threshold int, smart bool) *DuplicateRemover {
 		threshold:  threshold,
 		smart:      smart,
 	}
-	dr.ANRegexp, _ = regexp.Compile(`[0-9A-Za-z]{10,}`)
+	// some design problems
+	// 设计存在问题
+	dr.ANRegexp, _ = func() (map[string]*regexp.Regexp, error) {
+		ANRegexp := make(map[string]*regexp.Regexp)
+		for key, value := range Filters {
+			ANRegexp[key], _ = regexp.Compile(value)
+		}
+		return ANRegexp, nil
+	}()
 	return dr
 }
 
@@ -46,5 +67,8 @@ func (dr *DuplicateRemover) RemoveDuplicator(line string) string {
 
 // 将正则 [0-9A-Za-z]{10,} 一般化，超过阈值则进行智能过滤
 func (dr *DuplicateRemover) generalize(line string) string {
-	return dr.ANRegexp.ReplaceAllString(line, ALPHANUMERIC)
+	for _, key := range OrderFilters {
+		line = dr.ANRegexp[key].ReplaceAllString(line, key)
+	}
+	return line
 }
