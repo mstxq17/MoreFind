@@ -26,14 +26,12 @@ var versionCmd = &cobra.Command{
 		fmt.Println("")
 	},
 }
-
 var pattern string
 var inverseMatch bool // Define a variable to hold the value of the inverse match flag
 var cmpMode int
 var strictMode bool
 var smart bool
 var threshold int
-
 var grepCmd = &cobra.Command{
 	Use:   "grep",
 	Short: "If no grep , use this",

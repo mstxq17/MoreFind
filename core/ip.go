@@ -3,9 +3,11 @@ package core
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/mstxq17/MoreFind/errx"
 	"math/big"
 	"net"
 	"regexp"
+	"strings"
 )
 
 // AlterIP make some come true
@@ -19,7 +21,7 @@ func AlterIP(ip string, formats []string) []string {
 			alteredIPs = append(alteredIPs, standardIP.String())
 		case "2":
 			// 0-optimized dotted-decimal notation
-			// the 0 value segments of an IP address can be ommitted (eg. 127.0.0.1 => 127.1)
+			// the 0 value segments of an IP address can be omitted (eg. 127.0.0.1 => 127.1)
 			// regex for zeroes with dot 0000.
 			var reZeroesWithDot = regexp.MustCompile(`(?m)[0]+\.`)
 			// regex for .0000
@@ -62,11 +64,57 @@ func AlterIP(ip string, formats []string) []string {
 			// URL-encoded IP address
 			// 127.0.0.1 => %31%32%37%2E%30%2E%30%2E%31
 			// ::1 => %3A%3A%31
-			alteredIP := escape(ip)
+			alteredIP := Escape(ip)
 			alteredIPs = append(alteredIPs, alteredIP)
 		}
 	}
 	return alteredIPs
+}
+
+func GenIP(cidr string, outputchan chan string) error {
+	// fix parse error because of \n in window env
+	// 修复 window 因为多了换行符导致的错误
+	cidr = strings.TrimSpace(cidr)
+	var _error error
+	if strings.Contains(cidr, "/") {
+		ip, ipnet, err := net.ParseCIDR(cidr)
+		if err != nil {
+			_error = errx.NewMsgf("无法解析CIDR地址: %v", cidr)
+			return _error
+		} else {
+			for sip := ip.Mask(ipnet.Mask); ipnet.Contains(sip); IncNetIP(sip) {
+				outputchan <- sip.String()
+			}
+		}
+	}
+	if strings.Contains(cidr, "-") {
+		var ipRange []string
+		for _, ipStr := range strings.Split(cidr, "-") {
+			ipRange = append(ipRange, strings.TrimSpace(ipStr))
+		}
+		if len(ipRange) != 2 {
+			_error = errx.NewMsgf("无法解析给定的IP段: %v", cidr)
+			return _error
+		}
+
+		startIPStr := ipRange[0]
+		endIPStr := ipRange[1]
+		errStart := net.ParseIP(startIPStr)
+		errEnd := net.ParseIP(endIPStr)
+		if errStart == nil || errEnd == nil {
+			_error = errx.NewMsgf("无法解析给定的IP段: %v", cidr)
+			return _error
+		}
+		ipList := IPRange(startIPStr, endIPStr)
+		for _, ip := range ipList {
+			outputchan <- ip
+		}
+	}
+	if !strings.Contains(cidr, "/") && !strings.Contains(cidr, "-") {
+		cidr = cidr + "/24"
+		return GenIP(cidr, outputchan)
+	}
+	return _error
 }
 
 func IPRange(startIPStr, endIPStr string) []string {
@@ -95,6 +143,15 @@ func IPToInteger(ip net.IP) (*big.Int, int, error) {
 		return val, 128, nil //nolint
 	} else {
 		return nil, 0, fmt.Errorf("unsupported address length %d", len(ip))
+	}
+}
+
+func IncNetIP(ip net.IP) {
+	for j := len(ip) - 1; j >= 0; j-- {
+		ip[j]++
+		if ip[j] > 0 {
+			break
+		}
 	}
 }
 

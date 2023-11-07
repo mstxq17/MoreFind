@@ -6,11 +6,21 @@ import (
 	"encoding/hex"
 	"fmt"
 	"os"
+	"strconv"
 )
 
 const upperhex = "0123456789ABCDEF"
 
-func escape(s string) string {
+func GetEnvOrDefault(key string, defaultValue int) int {
+	if envValue, exists := os.LookupEnv(key); exists {
+		if envValueInt, err := strconv.Atoi(envValue); err == nil {
+			return envValueInt
+		}
+	}
+	return defaultValue
+}
+
+func Escape(s string) string {
 	var b bytes.Buffer
 	for i := 0; i < len(s); i++ {
 		b.WriteString("%")
@@ -21,11 +31,11 @@ func escape(s string) string {
 }
 
 func RandomHex(n int, suffix []byte) (string, error) {
-	bytes := make([]byte, n)
-	if _, err := rand.Read(bytes); err != nil {
+	_bytes := make([]byte, n)
+	if _, err := rand.Read(_bytes); err != nil {
 		return "", err
 	}
-	return hex.EncodeToString(append(bytes, suffix...)), nil
+	return hex.EncodeToString(append(_bytes, suffix...)), nil
 }
 
 func NewLine() string {

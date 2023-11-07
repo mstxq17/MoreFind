@@ -8,6 +8,8 @@ import (
 	"sync"
 )
 
+var NewLine = core.NewLine()
+
 // try for refactor in future
 // 为以后统一输出做铺垫
 func syncOutput(wg *sync.WaitGroup, outputchan chan string) {
@@ -40,7 +42,7 @@ func outputItems(f *os.File, items ...string) {
 	for _, item := range items {
 		fmt.Println(item)
 		if f != nil {
-			_, _ = f.WriteString(item + "\n")
+			_, _ = f.WriteString(item + NewLine)
 		}
 	}
 }

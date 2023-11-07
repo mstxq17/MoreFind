@@ -25,7 +25,6 @@ const (
 )
 
 var logger *log.Logger
-var NewLine string
 
 // IPAndPort define custom struct
 // 自定义一个结构体
@@ -191,59 +190,6 @@ func fileExt(_url string) string {
 	}
 }
 
-func inc(ip net.IP) {
-	//
-	for j := len(ip) - 1; j >= 0; j-- {
-		ip[j]++
-		if ip[j] > 0 {
-			break
-		}
-	}
-}
-
-func genIP(cidr string, outputchan chan string) {
-	// fix parse errx because of \n in window env
-	// 修复 window 因为多了换行符导致的错误
-	cidr = strings.TrimSpace(cidr)
-	if strings.Contains(cidr, "/") {
-		ip, ipnet, err := net.ParseCIDR(cidr)
-		if err != nil {
-			logger.Println("无法解析CIDR地址:", err)
-		} else {
-			for ip := ip.Mask(ipnet.Mask); ipnet.Contains(ip); inc(ip) {
-				outputchan <- ip.String()
-			}
-		}
-	}
-	if strings.Contains(cidr, "-") {
-		var ipRange []string
-		for _, ipstr := range strings.Split(cidr, "-") {
-			ipRange = append(ipRange, strings.TrimSpace(ipstr))
-		}
-		if len(ipRange) != 2 {
-			logger.Println("无法解析给定的IP段: " + cidr)
-			return
-		}
-
-		startIPStr := ipRange[0]
-		endIPStr := ipRange[1]
-		errStart := net.ParseIP(startIPStr)
-		errEnd := net.ParseIP(endIPStr)
-		if errStart == nil || errEnd == nil {
-			logger.Println("无法解析给定的IP段: " + cidr)
-			return
-		}
-		ipList := core.IPRange(startIPStr, endIPStr)
-		for _, ip := range ipList {
-			outputchan <- ip
-		}
-	}
-	if !strings.Contains(cidr, "/") && !strings.Contains(cidr, "-") {
-		cidr = cidr + "/24"
-		genIP(cidr, outputchan)
-	}
-}
-
 func handleStdin(file string) (*os.File, os.FileInfo) {
 	var _file *os.File
 	if file != "" {
@@ -285,7 +231,10 @@ func preCommand(cmd *cobra.Command, args []string) bool {
 	// if cidr flag be selected，deal with it first
 	// 如果选择 cidr 参数，首先处理它
 	if myCidr != "" && myCidr != "__pipe__" {
-		genIP(myCidr, outputchan)
+		err := core.GenIP(myCidr, outputchan)
+		if err != nil {
+			logger.Println(err)
+		}
 		close(outputchan)
 		wg.Wait()
 		return true
@@ -322,9 +271,9 @@ func runCommand(cmd *cobra.Command, args []string) {
 		scanner = bufio.NewScanner(reader)
 	}
 	buf := make([]byte, 0, 64*1024)
-	// support maximum  512MB buffer every line
-	// 支持最大读取单行 512MB 大小
-	scanner.Buffer(buf, MaxTokenSize)
+	// support maximum  512MB buffer every line & support set maximum size through env
+	// 支持最大读取单行 512MB 大小 & 支持环境变量设置更大值
+	scanner.Buffer(buf, core.GetEnvOrDefault("MaxTokenSize", MaxTokenSize))
 	// 输出
 	outputchan := make(chan string)
 	var wg sync.WaitGroup
@@ -334,15 +283,11 @@ func runCommand(cmd *cobra.Command, args []string) {
 	if myCidr == "__pipe__" {
 		for scanner.Scan() {
 			line := strings.TrimSpace(scanner.Text())
-			genIP(line, outputchan)
+			err := core.GenIP(line, outputchan)
+			if err != nil {
+				logger.Println(err)
+			}
 		}
-		// close the channel first
-		// 先关闭通道
-		close(outputchan)
-		// wait for ending, exit
-		// 等待输出结束，然后结束程序
-		wg.Wait()
-		return
 	}
 	if myUrl == false && myDomain == false && myIp == false {
 		if myShow == true {
@@ -364,21 +309,22 @@ func runCommand(cmd *cobra.Command, args []string) {
 					minLength = len(line)
 				}
 				count++
-				fmt.Printf("%-5d%-7s\t%s%s", count, " Len:"+lineLength, line, NewLine)
+				outputLine := fmt.Sprintf("%-5d Len:%-6s\t%s", count, lineLength, line)
+				outputchan <- outputLine
 			}
-			fmt.Printf("%v==================================================%v", NewLine, NewLine)
-			fmt.Printf("CountLine: %d MaxLength: %d, MinLength: %d%v", count, maxLength, minLength, NewLine)
-			return
+			splitPadding := "==================================================="
+			outputchan <- splitPadding
+			summaryTotal := fmt.Sprintf("CountLine: %d MaxLength: %d, MinLength: %d", count, maxLength, minLength)
+			outputchan <- summaryTotal
 		}
 		if myLimitLen != "" {
 			min, max := filterLen(myLimitLen)
 			for scanner.Scan() {
 				line := strings.TrimSpace(scanner.Text())
 				if min <= len(line) && len(line) <= max {
-					fmt.Println(line)
+					outputchan <- line
 				}
 			}
-			return
 		}
 	}
 	if myUrl == false && myDomain == false && myIp == false {
@@ -389,7 +335,7 @@ func runCommand(cmd *cobra.Command, args []string) {
 	var ipList []string
 	// remove duplicated url
 	// 去除重复的url
-	found := make(map[string]bool)
+	found := make(map[string]struct{})
 	// define stream myself
 	// 定义自己的输出流
 	var outputBuffer *core.MyBuffer
@@ -418,11 +364,11 @@ func runCommand(cmd *cobra.Command, args []string) {
 						if myUrlFilter != "" {
 							if !filterExt(_url, myUrlFilter) {
 								outputBuffer.WriteString(_url, &customStringHandler)
-								found[_url] = true
+								found[_url] = struct{}{}
 							}
 						} else {
 							outputBuffer.WriteString(_url, &customStringHandler)
-							found[_url] = true
+							found[_url] = struct{}{}
 						}
 						outputchan <- outputBuffer.TempString
 					}
@@ -443,7 +389,7 @@ func runCommand(cmd *cobra.Command, args []string) {
 					// remove repeated string
 					if _, ok := found[_domain]; !ok {
 						outputBuffer.WriteString(_domain, &customStringHandler)
-						found[_domain] = true
+						found[_domain] = struct{}{}
 						outputchan <- outputBuffer.TempString
 					}
 				}
@@ -465,11 +411,11 @@ func runCommand(cmd *cobra.Command, args []string) {
 					if myPrivateIp == true {
 						if isPrivateIP(ipWithPort) == false {
 							outputBuffer.WriteString(ipWithPort, &customStringHandler)
-							found[ipWithPort] = true
+							found[ipWithPort] = struct{}{}
 						}
 					} else {
 						outputBuffer.WriteString(ipWithPort, &customStringHandler)
-						found[ipWithPort] = true
+						found[ipWithPort] = struct{}{}
 					}
 					outputchan <- outputBuffer.TempString
 				}
