@@ -546,7 +546,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&myDomain, "domain", "d", false, vars.DomainHelpEn)
 	rootCmd.PersistentFlags().BoolVarP(&myRootDomain, "root", "", false, vars.RootDomainHelpEn)
 	rootCmd.PersistentFlags().BoolVarP(&myWithPort, "port", "p", false, vars.WithPortHelpEn)
-	rootCmd.PersistentFlags().StringVarP(&myRule, "rule", "r", "", vars.WithPortHelpEn)
+	rootCmd.PersistentFlags().StringVarP(&myRule, "rule", "r", "", vars.RuleHelpEn)
 	rootCmd.PersistentFlags().StringVarP(&myFlag, "flag", "", "{}", vars.FlagHelpEn)
 	rootCmd.PersistentFlags().BoolVarP(&myUrl, "url", "u", false, vars.URLHelpEn)
 	rootCmd.PersistentFlags().StringVarP(&myUrlFilter, "filter", "", "", vars.URLFilterHelpEn)

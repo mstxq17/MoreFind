@@ -7,13 +7,13 @@ const (
 	OutputHelpEn = "Specifies the output file path."
 	OutputHelpZh = "指定输出文件路径。"
 
-	IPHelpEn = "Matches an IP from the input pipe or file."
+	IPHelpEn = "Matches IPs from the input pipe or file."
 	IPHelpZh = "从输入管道或文件中匹配 IP。"
 
 	ExcludeHelpEn = "Excludes internal/private IP segments when using -i/--ip."
 	ExcludeHelpZh = "在使用 -i/--ip 时排除内部/私有 IP 段。"
 
-	DomainHelpEn = "Matches a domain from the input pipe or file."
+	DomainHelpEn = "Matches domains from the input pipe or file."
 	DomainHelpZh = "从输入管道或文件中匹配域名。"
 
 	RootDomainHelpEn = "Outputs only the primary domain when using -d/--domain."
@@ -37,8 +37,8 @@ const (
 	CidrHelpEn = "Outputs the specified CIDR IP list."
 	CidrHelpZh = "输出指定 CIDR 范围内的所有 IP。"
 
-	LimitLenHelpEn = "Specifies the length of string, e.g., \"-l 35\" == \"-l 0-35\"."
-	LimitLenHelpZh = "指定字符串长度，例如，\"-l 35\" == \"-l 0-35\"。"
+	LimitLenHelpEn = "Matches input specified length string, e.g., \"-l 35\" == \"-l 0-35\"."
+	LimitLenHelpZh = "匹配每行指定长度的字符串，例如，\"-l 35\" == \"-l 0-35\"。"
 
 	ShowHelpEn = "Displays the length of each line and provides summaries."
 	ShowHelpZh = "显示每行的长度并提供摘要。"
