@@ -60,18 +60,18 @@ Available Commands:
 Flags:
   -f, --file string                                              Specifies the input file path.
   -o, --output string                                            Specifies the output file path.
-  -i, --ip                                                       Matches an IP from the input pipe or file.
+  -i, --ip                                                       Matches IPs from the input pipe or file.
       --exclude                                                  Excludes internal/private IP segments when using -i/--ip.
-  -d, --domain                                                   Matches a domain from the input pipe or file.
+  -d, --domain                                                   Matches domains from the input pipe or file.
       --root                                                     Outputs only the primary domain when using -d/--domain.
   -p, --port                                                     Filters only domain & IP:port combinations.
-  -r, --rule string                                              Filters only domain & IP:port combinations.
+  -r, --rule string                                              Utilizes a custom replacement rule (custom output replacement rule: https://{}/).
       --flag string                                              Specifies the replacement identification. (default "{}")
   -u, --url                                                      Matches URLs from the input pipe or file.
       --filter string[="js,css,json,png,jpg,html,xml,zip,rar"]   Filters URLs with specific extensions.
   -c, --cidr string[="__pipe__"]                                 Outputs the specified CIDR IP list.
   -a, --alter strings                                            IP Alters (0,1,2,3,4,5,6,7,8)
-  -l, --len string                                               Specifies the length of string, e.g., "-l 35" == "-l 0-35".
+  -l, --len string                                               Matches input specified length string, e.g., "-l 35" == "-l 0-35".
   -s, --show                                                     Displays the length of each line and provides summaries.
   -m, --metric                                                   Outputs execution progress metrics.
   -U, --update                                                   Updates the tool engine to the latest released version.
