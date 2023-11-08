@@ -11,10 +11,10 @@ import (
 
 const upperhex = "0123456789ABCDEF"
 
-func GetEnvOrDefault(key string, defaultValue int) int {
+func GetEnvOrDefault(key string, defaultValue int, ratios int) int {
 	if envValue, exists := os.LookupEnv(key); exists {
 		if envValueInt, err := strconv.Atoi(envValue); err == nil {
-			return envValueInt
+			return envValueInt * ratios
 		}
 	}
 	return defaultValue

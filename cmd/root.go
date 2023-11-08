@@ -176,7 +176,7 @@ func fileExt(_url string) string {
 	if err != nil {
 		// ignore the exception for preventing from blocking next line
 		// 忽略异常防止阻塞下一行的处理
-		//logger.Fatal(err)
+		logger.Println(err)
 	}
 	part := strings.Split(u.Path, "/")
 	fileName := part[len(part)-1]
@@ -271,9 +271,9 @@ func runCommand(cmd *cobra.Command, args []string) {
 		scanner = bufio.NewScanner(reader)
 	}
 	buf := make([]byte, 0, 64*1024)
-	// support maximum  512MB buffer every line & support set maximum size through env
-	// 支持最大读取单行 512MB 大小 & 支持环境变量设置更大值
-	scanner.Buffer(buf, core.GetEnvOrDefault("MaxTokenSize", MaxTokenSize))
+	// support maximum  512MB buffer every line & support set maximum size through env, unit is MB
+	// 支持最大读取单行 512MB 大小 & 支持环境变量设置更大值,单位/MB
+	scanner.Buffer(buf, core.GetEnvOrDefault("MaxTokenSize", MaxTokenSize, 1024*1024))
 	// 输出
 	outputchan := make(chan string)
 	var wg sync.WaitGroup
@@ -448,6 +448,7 @@ var (
 	myFlag       string
 	myProgress   bool
 	myUpdate     bool
+	myQuiet      bool
 	myIPFormats  []string
 	rootCmd      = &cobra.Command{
 		Use:   "morefind",
@@ -506,6 +507,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&myLimitLen, "len", "l", "", vars.LimitLenHelpEn)
 	rootCmd.PersistentFlags().BoolVarP(&myShow, "show", "s", false, vars.ShowHelpEn)
 	rootCmd.PersistentFlags().BoolVarP(&myProgress, "metric", "m", false, vars.ProgressHelpEn)
+	rootCmd.PersistentFlags().BoolVarP(&myQuiet, "quiet", "q", false, vars.QuietHelpEn)
 	rootCmd.PersistentFlags().BoolVarP(&myUpdate, "update", "U", false, vars.UpdateHelpEn)
 	// Dont sorted flag alphabetically
 	// 禁止排序参数，按代码定义顺序展示

@@ -40,7 +40,10 @@ func syncOutput(wg *sync.WaitGroup, outputchan chan string) {
 
 func outputItems(f *os.File, items ...string) {
 	for _, item := range items {
-		fmt.Println(item)
+		// 增加安静模式
+		if !myQuiet {
+			fmt.Print(item + NewLine)
+		}
 		if f != nil {
 			_, _ = f.WriteString(item + NewLine)
 		}

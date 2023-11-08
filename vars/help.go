@@ -46,6 +46,9 @@ const (
 	ProgressHelpEn = "Outputs execution progress metrics."
 	ProgressHelpZh = "读取大量行时输出执行进度指标状态。"
 
+	QuietHelpEn = "Enable quit mode,keep silence."
+	QuietHelpZh = "安装模式"
+
 	UpdateHelpEn = "Updates the tool engine to the latest released version."
 	UpdateHelpZh = "将工具引擎更新到最新版本。"
 
