@@ -8,6 +8,7 @@ import (
 	"github.com/mstxq17/MoreFind/vars"
 	"github.com/spf13/cobra"
 	"log"
+	"os"
 	"strings"
 )
 
@@ -131,15 +132,26 @@ var deduCmd = &cobra.Command{
 	},
 }
 
-var xlsxCmd = &cobra.Command{
-	Use:   "xlsx",
-	Short: "covert xlsx format to text",
+var docCmd = &cobra.Command{
+	Use:   "doc",
+	Short: "Covert xlsx/xls data to plain text",
+	Long:  "Extract plain text from xlsx or xls file quickly then output to stdin or file stream",
 	Run: func(cmd *cobra.Command, args []string) {
-		if myXlsx != "" {
-			fileReader := &core.FileReader{FilePath: myXlsx}
-			fr, _ := fileReader.ReadXLSX()
-			stringBuffer, _ := core.ReadIOReader(fr)
-			fmt.Println(stringBuffer)
+		if len(args) == 1 {
+			filePath := args[0]
+			binData, err := os.ReadFile(filePath)
+			if err != nil {
+				logger.Fatal(err)
+			}
+			reader, err := core.NewReader(binData)
+			if err != nil {
+				logger.Fatal(err)
+			}
+			fmt.Print(reader.Read())
+		} else {
+			fmt.Println("Missing enough params ......")
+			fmt.Printf("Usage: %v\t%s xlsx 1.xls%v", NewLine, vars.TOOLNAME, NewLine)
+			fmt.Printf("\t%s xlsx 2.xlsx%v", vars.TOOLNAME, NewLine)
 		}
 	},
 }
@@ -168,13 +180,14 @@ func init() {
 	deduCmd.Flags().SortFlags = false
 	// parse xlsx file
 	// 解析 xlsx 文件
-	xlsxCmd.Flags().StringVarP(&myXlsx, "xlsx", "x", "", vars.XlsxHelpEn)
-	xlsxCmd.Flags().SortFlags = false
+	//xlsxCmd.SetUsageTemplate(usageTemplate)
+	docCmd.SetHelpTemplate(helpTemplate)
+	docCmd.Flags().SortFlags = false
 	// add to root command
 	// 添加到 主命令
+	rootCmd.AddCommand(docCmd)
 	rootCmd.AddCommand(deduCmd)
 	rootCmd.AddCommand(diffCmd)
 	rootCmd.AddCommand(grepCmd)
-	rootCmd.AddCommand(xlsxCmd)
 	rootCmd.AddCommand(versionCmd)
 }
