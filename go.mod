@@ -14,8 +14,10 @@ require (
 	github.com/cheggaaa/pb/v3 v3.1.4
 	github.com/google/go-github/v30 v30.1.0
 	github.com/minio/selfupdate v0.6.0
+	github.com/pbnjay/grate v0.0.0-20231006022435-3f8e65d74a14
 	github.com/pkg/errors v0.9.1
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.8.0
+	github.com/tealeg/xlsx v1.0.5
 )
 
 require (
@@ -32,5 +34,5 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	golang.org/x/crypto v0.13.0 // indirect
 	golang.org/x/sys v0.12.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
