@@ -4,6 +4,9 @@ const (
 	FileHelpEn = "Specifies the input file path."
 	FileHelpZh = "指定输入文件路径。"
 
+	XlsxHelpEn = "Specifies the output file path."
+	XlsxHelpZh = "指定输出文件路径。"
+
 	OutputHelpEn = "Specifies the output file path."
 	OutputHelpZh = "指定输出文件路径。"
 

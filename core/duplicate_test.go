@@ -28,6 +28,6 @@ func TestCompareUtf8(t *testing.T) {
 	}
 	for _, tc := range testCase {
 		result := sh.compareUtf8(tc.s1, tc.s2)
-		require.Equal(t, tc.expected, result, "测试失败")
+		require.Equal(t, tc.expected, result, "Test Failed")
 	}
 }

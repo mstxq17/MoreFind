@@ -100,7 +100,7 @@ var diffCmd = &cobra.Command{
 			}
 		} else {
 			fmt.Println("Missing enough params ......")
-			fmt.Printf("Usage: %v\t%s cmp a.txt b.txt -M [1/2/3]%v", core.NewLine(), vars.TOOLNAME, core.NewLine())
+			fmt.Printf("Usage: %v\t%s cmp a.txt b.txt -M [1/2/3]%v", NewLine, vars.TOOLNAME, NewLine)
 		}
 	},
 }
@@ -113,7 +113,7 @@ var deduCmd = &cobra.Command{
 		fileStdin, _ := handleStdin(file)
 		defer func() {
 			if err := fileStdin.Close(); err != nil {
-				log.Fatal(err)
+				logger.Fatal(err)
 			}
 		}()
 		reader := bufio.NewReader(fileStdin)
@@ -127,6 +127,19 @@ var deduCmd = &cobra.Command{
 			if rResult != "" {
 				fmt.Println(rResult)
 			}
+		}
+	},
+}
+
+var xlsxCmd = &cobra.Command{
+	Use:   "xlsx",
+	Short: "covert xlsx format to text",
+	Run: func(cmd *cobra.Command, args []string) {
+		if myXlsx != "" {
+			fileReader := &core.FileReader{FilePath: myXlsx}
+			fr, _ := fileReader.ReadXLSX()
+			stringBuffer, _ := core.ReadIOReader(fr)
+			fmt.Println(stringBuffer)
 		}
 	},
 }
@@ -153,10 +166,15 @@ func init() {
 	deduCmd.SetUsageTemplate(usageTemplate)
 	deduCmd.SetHelpTemplate(deduHelpTemplate)
 	deduCmd.Flags().SortFlags = false
+	// parse xlsx file
+	// 解析 xlsx 文件
+	xlsxCmd.Flags().StringVarP(&myXlsx, "xlsx", "x", "", vars.XlsxHelpEn)
+	xlsxCmd.Flags().SortFlags = false
 	// add to root command
 	// 添加到 主命令
-	rootCmd.AddCommand(versionCmd)
-	rootCmd.AddCommand(grepCmd)
-	rootCmd.AddCommand(diffCmd)
 	rootCmd.AddCommand(deduCmd)
+	rootCmd.AddCommand(diffCmd)
+	rootCmd.AddCommand(grepCmd)
+	rootCmd.AddCommand(xlsxCmd)
+	rootCmd.AddCommand(versionCmd)
 }

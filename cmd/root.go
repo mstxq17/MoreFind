@@ -449,6 +449,7 @@ var (
 	myProgress   bool
 	myUpdate     bool
 	myQuiet      bool
+	myXlsx       string
 	myIPFormats  []string
 	rootCmd      = &cobra.Command{
 		Use:   "morefind",
@@ -509,8 +510,11 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&myProgress, "metric", "m", false, vars.ProgressHelpEn)
 	rootCmd.PersistentFlags().BoolVarP(&myQuiet, "quiet", "q", false, vars.QuietHelpEn)
 	rootCmd.PersistentFlags().BoolVarP(&myUpdate, "update", "U", false, vars.UpdateHelpEn)
-	// Dont sorted flag alphabetically
+	// Dont sorted flag lexicographically
 	// 禁止排序参数，按代码定义顺序展示
 	rootCmd.PersistentFlags().SortFlags = false
 	rootCmd.Flags().SortFlags = false
+	// Dont sorted subcommand lexicographically
+	// 禁止子命令排序
+	cobra.EnableCommandSorting = false
 }
