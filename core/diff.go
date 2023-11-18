@@ -65,32 +65,28 @@ func CompareFiles(a, b []string, strictMode bool) ([]string, []string, []string)
 		// 非严格模式：排序后逐行比较
 		sort.Strings(a)
 		sort.Strings(b)
-
-		// 逐行比较
-		ia, ib := 0, 0
-		for ia < len(a) && ib < len(b) {
-			switch {
-			case a[ia] == b[ib]:
-				inBoth = append(inBoth, a[ia])
-				ia++
-				ib++
-			case a[ia] < b[ib]:
-				onlyInA = append(onlyInA, a[ia])
-				ia++
-			default:
-				onlyInB = append(onlyInB, b[ib])
-				ib++
+		tempMap := make(map[string]int8)
+		for _, item := range a {
+			tempMap[item] = 1
+		}
+		for _, item := range b {
+			if tempMap[item] == 1 {
+				tempMap[item] = 3
+			} else {
+				tempMap[item] = 2
 			}
 		}
-
-		// 处理剩余部分
-		for ; ia < len(a); ia++ {
-			onlyInA = append(onlyInA, a[ia])
-		}
-		for ; ib < len(b); ib++ {
-			onlyInB = append(onlyInB, b[ib])
+		for value, flag := range tempMap {
+			if flag == 1 {
+				onlyInA = append(onlyInA, value)
+			}
+			if flag == 2 {
+				onlyInB = append(onlyInB, value)
+			}
+			if flag == 3 {
+				inBoth = append(inBoth, value)
+			}
 		}
 	}
-
 	return onlyInA, onlyInB, inBoth
 }
