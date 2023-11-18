@@ -67,14 +67,14 @@ var diffCmd = &cobra.Command{
 	Long:  `File Comparator, a robust Golang tool, With options for strict or sorted comparison.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 2 {
-			file1Name := args[0]
-			file2Name := args[1]
-			lines1, err1 := core.ReadLines(file1Name)
-			lines2, err2 := core.ReadLines(file2Name)
+			fileAName := args[0]
+			fileBName := args[1]
+			linesA, err1 := core.ReadLines(fileAName)
+			linesB, err2 := core.ReadLines(fileBName)
 			if err1 != nil || err2 != nil {
 				logger.Fatal(err1, err2)
 			}
-			onlyInA, onlyInB, inBoth := core.CompareFiles(lines1, lines2, strictMode)
+			onlyInA, onlyInB, inBoth := core.CompareFiles(linesA, linesB, strictMode)
 			if cmpMode < 1 || cmpMode > 3 {
 				logger.Fatalf("cmpMode value must between 1-3, you pass: %v", cmpMode)
 			}
