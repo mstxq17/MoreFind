@@ -15,6 +15,7 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -31,6 +32,13 @@ var logger *log.Logger
 type IPAndPort struct {
 	IP   string
 	Port string
+}
+
+// KeyValue sorted structure
+// 自定义一个排序结构体
+type KeyValue struct {
+	Key   string
+	Value int
 }
 
 type ErrorCallback func() *log.Logger
@@ -295,6 +303,8 @@ func runCommand(cmd *cobra.Command, args []string) {
 			maxLength := 0
 			minLength := 0
 			first := true
+			countDeduItems := make(map[string]int)
+			// 存储统计的数据
 			for scanner.Scan() {
 				line := scanner.Text()
 				lineLength := strconv.Itoa(len(line))
@@ -308,20 +318,37 @@ func runCommand(cmd *cobra.Command, args []string) {
 				if len(line) < minLength && first == false {
 					minLength = len(line)
 				}
+				stripLine := strings.TrimSpace(line)
 				count++
+				countDeduItems[stripLine]++
 				outputLine := fmt.Sprintf("%-5d Len:%-6s\t%s", count, lineLength, line)
 				outputchan <- outputLine
 			}
 			splitPadding := "==================================================="
 			outputchan <- splitPadding
+			// show  duplicate item count
+			// 统计重复项的次数
+			var keyValuePairs []KeyValue
+			for key, value := range countDeduItems {
+				keyValuePairs = append(keyValuePairs, KeyValue{Key: key, Value: value})
+			}
+			// 使用自定义排序函数对切片进行排序
+			sort.Slice(keyValuePairs, func(i, j int) bool {
+				return keyValuePairs[i].Value > keyValuePairs[j].Value
+			})
+			for index, kv := range keyValuePairs {
+				outputLine := fmt.Sprintf("%-5d Num:%-6d\t%s", index, kv.Value, kv.Key)
+				outputchan <- outputLine
+			}
+			outputchan <- splitPadding
 			summaryTotal := fmt.Sprintf("CountLine: %d MaxLength: %d, MinLength: %d", count, maxLength, minLength)
 			outputchan <- summaryTotal
 		}
 		if myLimitLen != "" {
-			min, max := filterLen(myLimitLen)
+			minLen, maxLen := filterLen(myLimitLen)
 			for scanner.Scan() {
 				line := strings.TrimSpace(scanner.Text())
-				if min <= len(line) && len(line) <= max {
+				if minLen <= len(line) && len(line) <= maxLen {
 					outputchan <- line
 				}
 			}
@@ -458,7 +485,7 @@ var (
 
 		Run: func(cmd *cobra.Command, args []string) {
 			// run high priority command first
-			// 先执行优先级高的命令,如额更新执行
+			// 先执行优先级高的命令,如更新命令
 			updateCommand(cmd, args)
 			// 若 preCommand 返回 true，表示命令执行成功，直接返回
 			if preCommand(cmd, args) {

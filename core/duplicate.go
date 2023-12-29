@@ -13,7 +13,7 @@ const (
 var Filters = map[string]string{
 	AlphanumericOtherMixed: `[0-9A-Za-z_-]{8,}`,
 	PureNumber:             `[0-9]{2,7}`,
-	PureChinese:            "[\u4e00-\u9fa5]{1,}",
+	PureChinese:            `[\p{Han}]{2,}`,
 }
 
 // OrderFilters distribute filter order is required because of unordered map
