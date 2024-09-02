@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/cheggaaa/pb/v3"
 	"github.com/mstxq17/MoreFind/core"
+	"github.com/mstxq17/MoreFind/core/extract"
+	"github.com/mstxq17/MoreFind/core/utils/uniqueutil"
 	"github.com/mstxq17/MoreFind/update"
 	"github.com/mstxq17/MoreFind/vars"
 	"github.com/spf13/cobra"
@@ -354,7 +356,7 @@ func runCommand(cmd *cobra.Command, args []string) {
 			}
 		}
 	}
-	if myUrl == false && myDomain == false && myIp == false {
+	if myUrl == false && myDomain == false && myIp == false && myLink == false {
 		myUrl = true
 	}
 	var urlList []string
@@ -378,16 +380,40 @@ func runCommand(cmd *cobra.Command, args []string) {
 	}
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
-		if myUrl == true || myDomain == true {
+		if myUrl == true || myDomain == true || myLink == true {
 			searchUrl := searchUrl(line)
 			for _, _url := range searchUrl {
-				_url = strings.TrimSpace(_url)
+				trimUrl := strings.TrimSpace(_url)
+				if myLink == true {
+					simpleUrl, hasSchema, err := extract.SimpleUrl(trimUrl)
+					if err != nil {
+						logger.Printf("handle:  %v  Err: %v \n", trimUrl, err)
+						continue
+					}
+					if mySchema != "" && !hasSchema {
+						// 写入输出
+						simpleUrl = fmt.Sprintf("%v://%v", mySchema, simpleUrl)
+						if uniqueutil.IsKeyUniq(simpleUrl, found) {
+							outputBuffer.WriteString(simpleUrl, &customStringHandler)
+							found[simpleUrl] = struct{}{}
+							outputchan <- outputBuffer.TempString
+						}
+					} else {
+						// 写入输出
+						if uniqueutil.IsKeyUniq(simpleUrl, found) {
+							outputBuffer.WriteString(simpleUrl, &customStringHandler)
+							found[simpleUrl] = struct{}{}
+							outputchan <- outputBuffer.TempString
+						}
+					}
+				}
+
 				if myUrl == true {
 					if output != "" {
-						urlList = append(urlList, _url)
+						urlList = append(urlList, trimUrl)
 					}
 					// remove repeated string
-					if _, ok := found[_url]; !ok {
+					if _, ok := found[trimUrl]; !ok {
 						if myUrlFilter != "" {
 							if !filterExt(_url, myUrlFilter) {
 								outputBuffer.WriteString(_url, &customStringHandler)
@@ -401,7 +427,7 @@ func runCommand(cmd *cobra.Command, args []string) {
 					}
 				}
 				if myDomain == true {
-					port, _domain := searchDomain(_url, myRootDomain)
+					port, _domain := searchDomain(trimUrl, myRootDomain)
 					if _domain == "" || isIPAddr(_domain) {
 						continue
 					}
@@ -476,6 +502,8 @@ var (
 	myProgress   bool
 	myUpdate     bool
 	myQuiet      bool
+	myLink       bool
+	mySchema     string
 	myXlsx       string
 	myIPFormats  []string
 	rootCmd      = &cobra.Command{
@@ -516,6 +544,9 @@ func init() {
 	NewLine = core.NewLine()
 	rootCmd.PersistentFlags().StringVarP(&file, "file", "f", "", vars.FileHelpEn)
 	rootCmd.PersistentFlags().StringVarP(&output, "output", "o", "", vars.OutputHelpEn)
+	rootCmd.PersistentFlags().BoolVarP(&myLink, "link", "k", false, vars.TargetHelpEn)
+	rootCmd.PersistentFlags().StringVarP(&mySchema, "schema", "", "", vars.SchemaHelpEn)
+	rootCmd.PersistentFlags().Lookup("schema").NoOptDefVal = ""
 	rootCmd.PersistentFlags().BoolVarP(&myIp, "ip", "i", false, vars.IPHelpEn)
 	rootCmd.PersistentFlags().BoolVarP(&myPrivateIp, "exclude", "", false, vars.ExcludeHelpEn)
 	rootCmd.PersistentFlags().BoolVarP(&myDomain, "domain", "d", false, vars.DomainHelpEn)

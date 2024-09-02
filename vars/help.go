@@ -13,6 +13,12 @@ const (
 	IPHelpEn = "Matches IPs from the input pipe or file."
 	IPHelpZh = "从输入管道或文件中匹配 IP。"
 
+	TargetHelpEn = "Matches schema://host from the input pipe or file."
+	TargetHelpZh = "从输入管道或文件中匹配 schema://host。"
+
+	SchemaHelpEn = "When use with -t, the default is set to the specified protocol"
+	SchemaHelpZh = "与 -t 一起使用，默认设置为指定协议"
+
 	ExcludeHelpEn = "Excludes internal/private IP segments when using -i/--ip."
 	ExcludeHelpZh = "在使用 -i/--ip 时排除内部/私有 IP 段。"
 
