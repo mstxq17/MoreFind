@@ -19,8 +19,8 @@ go install  github.com/mstxq17/MoreFind@latest
 ```
 方式二: 直接安装二进制文件
 ```bash
-wget --no-check-certificate  https://ghproxy.com/https://github.com/mstxq17/MoreFind/releases/download/v1.5.7/MoreFind_v1.5.7_`uname -s`_`uname -m`.tar.gz
-tar -xzvf MoreFind_v1.5.5_`uname -s`_`uname -m`.tar.gz
+wget --no-check-certificate  https://ghproxy.nday.pw/https://github.com/mstxq17/MoreFind/releases/download/v1.5.7/MoreFind_v1.5.7_`uname -s`_`uname -m`.tar.gz
+tar -xzvf MoreFind_v1.5.7_`uname -s`_`uname -m`.tar.gz
 sudo mv ./MoreFind /usr/bin/MoreFind && chmod +x /usr/bin/MoreFind
 ```
 
@@ -32,7 +32,9 @@ chmod +x ./build.sh && ./build.sh
 
 方式四：Release 页面已经发布各大系统的二进制执行文件直接下载执行
 
-![image-20231019121834019](README.assets/image-20231019121834019.png)
+https://github.com/mstxq17/MoreFind/releases/
+
+![image-20240902135717430](README.assets/image-20240902135717430.png)
 
 
 
@@ -50,16 +52,19 @@ Usage:
   morefind [command]
 
 Available Commands:
-  completion  Generate the autocompletion script for the specified shell
+  doc         Covert xlsx/xls data to plain text
   dedu        De-duplicated lines
   diff        File Comparator between two files
   grep        If no grep , use this
-  help        Help about any command
   version     Print the semantic version number of MoreFind
+  help        Help about any command
+  completion  Generate the autocompletion script for the specified shell
 
 Flags:
   -f, --file string                                              Specifies the input file path.
   -o, --output string                                            Specifies the output file path.
+  -k, --link                                                     Matches schema://host from the input pipe or file.
+      --schema string                                            When use with -t, the default is set to the specified protocol
   -i, --ip                                                       Matches IPs from the input pipe or file.
       --exclude                                                  Excludes internal/private IP segments when using -i/--ip.
   -d, --domain                                                   Matches domains from the input pipe or file.
@@ -74,11 +79,11 @@ Flags:
   -l, --len string                                               Matches input specified length string, e.g., "-l 35" == "-l 0-35".
   -s, --show                                                     Displays the length of each line and provides summaries.
   -m, --metric                                                   Outputs execution progress metrics.
+  -q, --quiet                                                    Enable quit mode,keep silence.
   -U, --update                                                   Updates the tool engine to the latest released version.
   -h, --help                                                     help for morefind
 
 Use "morefind [command] --help" for more information about a command.
-
 ```
 
 1)导出URL
@@ -88,6 +93,15 @@ MoreFind -u
 # append --filter(default:js,css,json,png,jpg,html,xml,zip,rar) or --filter="png,jpg,xls,custom..."
 # 通过添加参数 --filter(默认排除常见静态文件) 或者 通过 --filter="png,jpg" 自定义需要排除的后缀
 MoreFind  -u --filter="png"
+```
+
+1.1) 导出schema://host的格式，如 http://baidu.com:80/123.jpg -> http://baidu.com:80
+
+```
+MoreFind -k
+# append --schema "http" 
+# 通过添加 --schema "http" 来为不存在协议的url添加上自定义协议
+MoreFind -k --schema "http"
 ```
 
 
@@ -301,7 +315,9 @@ MoreFind -f 1.txt -k  --schema "http"
 cat 1.txt|MoreFind -k --schema "https"
 ```
 
+![image-20240902140053666](README.assets/image-20240902140053666.png)
 
+![image-20240902140112091](README.assets/image-20240902140112091.png)
 
 如果你只想提取域名，MoreFind 会自动去重，如果你想提取根域名
 
