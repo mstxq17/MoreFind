@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-goreleaser --skip-publish --snapshot --rm-dist
+goreleaser  --skip "publish" --snapshot --clean
