@@ -19,7 +19,7 @@ go install  github.com/mstxq17/MoreFind@latest
 ```
 方式二: 直接安装二进制文件
 ```bash
-wget --no-check-certificate  https://ghproxy.com/https://github.com/mstxq17/MoreFind/releases/download/v1.5.6/MoreFind_v1.5.5_`uname -s`_`uname -m`.tar.gz
+wget --no-check-certificate  https://ghproxy.com/https://github.com/mstxq17/MoreFind/releases/download/v1.5.7/MoreFind_v1.5.7_`uname -s`_`uname -m`.tar.gz
 tar -xzvf MoreFind_v1.5.5_`uname -s`_`uname -m`.tar.gz
 sudo mv ./MoreFind /usr/bin/MoreFind && chmod +x /usr/bin/MoreFind
 ```
@@ -261,8 +261,6 @@ cat 1.txt|MoreFind grep "baidu.com" -v == cat 1.txt|MoreFind grep -P "baidu.com"
 
 
 
-
-
 ## 使用场景 **:fire:**
 
 假设当前你有这样一个文本文件
@@ -292,6 +290,18 @@ MoreFind -f 1.txt
 ```
 
 ![image-20231019123028213](README.assets/image-20231019123028213.png)
+
+如果你想提取  schema://host 格式的数据快速导入扫描器，如http://baidu.com/a13/123 -> http://baidu.com/
+
+```
+MoreFind -f 1.txt -k
+cat 1.txt|MoreFind -k
+# 如果想为默认没有协议的目标添加默认协议 
+MoreFind -f 1.txt -k  --schema "http"
+cat 1.txt|MoreFind -k --schema "https"
+```
+
+
 
 如果你只想提取域名，MoreFind 会自动去重，如果你想提取根域名
 
@@ -372,6 +382,7 @@ v1.5.0 版本增加不少功能，体积去到 8164KB，追求更高的压缩比
 - [x] 搜索URL的时候支持排除自定义后缀的URL
 - [x] 增加返回结果形式，支持过滤数据返回`域名:port`的格式
 - [x] 增加返回结果形式，支持过滤数据返回`ip:port`的格式
+- [x] 增加返回结果形式，支持过滤数据返回`协议:域名:port`的格式
 - [x] 支持搜索域名的时候根据etld+1的形式只显示根域名
 - [x] 读取文件流，输出统计信息，显示每行长度
 - [x] 可指定每行长度筛选出符合条件的字符串
